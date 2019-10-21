@@ -1,0 +1,20 @@
+\begin{thebibliography}{1}
+
+\bibitem{NeuralDecomposition}
+Luke~B. Godfrey and Michael~S. Gashler.
+\newblock Neural decomposition of time-series data for effective
+  generalization.
+\newblock {\em CoRR}, abs/1705.09137, 2017.
+
+\bibitem{N-BEATS}
+Boris~N. Oreshkin, Dmitri Carpov, Nicolas Chapados, and Yoshua Bengio.
+\newblock {N-BEATS:} neural basis expansion analysis for interpretable time
+  series forecasting.
+\newblock {\em CoRR}, abs/1905.10437, 2019.
+
+\bibitem{ES-RNN}
+Andrew Redd, Kaung Khin, and Aldo Marini.
+\newblock Fast {ES-RNN:} {A} {GPU} implementation of the {ES-RNN} algorithm.
+\newblock {\em CoRR}, abs/1907.03329, 2019.
+
+\end{thebibliography}

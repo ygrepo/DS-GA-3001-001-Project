@@ -1,0 +1,62 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[shortlabels]{enumitem}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage{xcolor}
+
+\title{Univariate Time Series Forecasting Using Deep Learning Architectures}
+\author{Yves Greatti, Zian Chen, Sunjoo Park}
+\date{}
+
+\begin{document}
+\maketitle
+\textbf{Due on October 16th}
+
+\noindent\rule{\textwidth}{0.4pt}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 3. Project proposal
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Abstract}
+Forecasting time series data is a challenging but critical task and has many applications in different industries such as finance, media or biomedical.
+In addition, complex and non-linear interdependencies between time steps and series complicate the task.
+Traditional methods have mostly be unsuccessful in modeling complex patterns or dependencies. 
+In this project, we aim to try different deep learning models on univariate time series point forecasting extending it to multivariate case if time permits.
+The M4 Competition large data set - 100,000 time series - is our reference dataset. The dataset comes from a wide range of industries including Economics, Finance, Tourism, Trade, Real Estate, and so on, aiming at representing as much real world data as possible. (\hyperlink{https://github.com/M4Competition/M4-methods/tree/master/Dataset} {M4-dataset})
+We will start using a classical statistical models such as SARIMA, TBATS and Holt-Winters exponential smoothing to build our baseline models and use deep learning architectures 
+including N-BEATS \cite{N-BEATS} and Fast ES-RNN \cite{ES-RNN} to compare how performances improve differently. We will report various accuracy metrics: sMAPE (symmetric Mean Absolute Percentage Error), MASE  (Mean Absolute Scaled Error) 
+or OWA (overall weighted average).
+
+\section{Related work}
+Named after the forecasting researcher Spyros Makridakis, the M Competition has been one of the most important events since 1982 in the forecasting community.
+The competitions compare the accuracy of different time series forecasting methods including the most advanced statistical models. The winner of 2018 competition is
+called ES-RNN (Exponential Smoothing-Recurrent Neural Network), and is a hybrid approach of attention based dilated LSTM (Long Short-Term Memory) with a classical Holt-Winters model. 
+N-BEATS is a model that purely relies on deep learning, without any combination with statistical models. Specifically, this model challenges ES-RNN model's heavy dependence on the Holt-Winters component.  
+
+\section{Our contribution}
+
+We propose to run different experimentations on the M dataset with the two main architectures ES-RNN and N-BEATS comparing the results obtained with these two models.
+We will also run our experimentations using Neural Decomposition (ND) \cite{NeuralDecomposition}, which performs a Fourier-like decomposition of training samples into a sum of sinusoids to capture linear trends and other non-periodic components. 
+In addition, we will investigate different embeddings obtained through variational inference (using the encoding part of the variational recurrent auto-encoder) or the universal embedding representation obtained by \cite{Franceschi}.
+If time permits, we will then focus our research on multivariate time series and more specifically sporadic time events with the most recent GRU-ODE-Bayes paper \cite{GRUODEBayes}. 
+It seems at first a long list of papers but some of the results of these different papers, like  N-BEATS ensembling of 180 models, might be particularly challenging to implement, and we may decide to skip part of the experimentations presented
+in these papers.
+
+\section{Conclusion}
+With these guided experimentations of recent, major deep learning time series models, we will hopefully be in good position to present a state-of-the art survey of univariate time series forecasting.
+We aim to improve on the existing architectures with attention based or residual networks or transfer the experience learned from one model to the others wherever applicable. Lastly, we will look into 
+presenting some recommendations for reproducing the experimentations by designing a generic framework for testing univariate time series forecasting models. 
+
+\bibliography{bibliography} 
+\bibliographystyle{plain}
+
+\end{document}
