@@ -7,11 +7,11 @@ from torch.utils.data import Dataset
 def read_file(file_location, sampling=False, sample_size=5):
     series = []
     ids = dict()
-    with open(file_location, 'r') as file:
+    with open(file_location, "r") as file:
         data = file.read().split("\n")
 
     for i in range(1, len(data) - 1):
-        row = data[i].replace('"', '').split(',')
+        row = data[i].replace('"', "").split(",")
         series.append(np.array([float(j) for j in row[1:] if j != ""]))
         ids[row[0]] = i - 1
         if sampling and i == sample_size:

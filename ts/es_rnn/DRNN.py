@@ -133,7 +133,7 @@ class DRNN(nn.Module):
             return hidden
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     n_inp = 10
     n_hidden = 16
     n_layers = 3

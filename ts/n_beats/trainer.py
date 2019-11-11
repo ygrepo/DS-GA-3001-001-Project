@@ -1,6 +1,6 @@
 import copy
-import os
 import time
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,18 +9,14 @@ import torch
 import torch.nn as nn
 from torch import optim
 
-from pathlib import Path
 from ts.n_beats.model import NBeatsNet
 from ts.utils.logger import Logger
 from ts.utils.loss_modules import PinballLoss, np_sMAPE
 
-CHECKPOINT_DIRECTORY = "models/n-beats"
-CHECKPOINT_NAME = "training-checkpoint.th"
-CHECKPOINT_PATH = Path(CHECKPOINT_DIRECTORY) / CHECKPOINT_NAME
-
 
 class Trainer(nn.Module):
-    def __init__(self, device, model, dataloader, run_id, config, forecast_length, backcast_length, ohe_headers, csv_path):
+    def __init__(self, device, model, dataloader, run_id, config, forecast_length, backcast_length, ohe_headers,
+                 csv_path):
         super(Trainer, self).__init__()
         self.device = device
         self.model = model.to(config["device"])
@@ -156,7 +152,7 @@ class Trainer(nn.Module):
 
         return hold_out_loss.detach().cpu().item()
 
-    def save(self, model, optimiser, grad_step, save_dir= Path(".")):
+    def save(self, model, optimiser, grad_step, save_dir=Path(".")):
         file_path = save_dir / "models/nbeats" / self.run_id / self.prod_str
         file_path.mkdir(parents=True, exist_ok=True)
         model_path = file_path / "model-{}.pyt".format(self.epochs)

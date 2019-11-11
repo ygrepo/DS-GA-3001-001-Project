@@ -12,18 +12,18 @@ from ts.es_rnn.trainer import ESRNNTrainer
 
 print("Start")
 try:
-    user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
+    user_paths = os.environ["PYTHONPATH"].split(os.pathsep)
     print(user_paths)
 except KeyError:
     user_paths = []
 
 BASE_DIR = Path("data/raw/")
 LOG_DIR = Path("logs/esrnn")
-print('loading config')
+print("loading config")
 # config = get_config("Quarterly")
-config = get_config('Monthly')
+config = get_config("Monthly")
 
-print('loading data')
+print("loading data")
 info = pd.read_csv(str(BASE_DIR / "M4info.csv"))
 
 train_path = str(BASE_DIR / "train/%s-train.csv") % (config["variable"])
@@ -36,7 +36,7 @@ print(train.shape, val.shape, test.shape)
 dataset = SeriesDataset(train, val, test, info, config["variable"], config["chop_val"], config["device"],
                         train_idx, sample)
 config["num_of_categories"] = len(dataset.dataInfoCatHeaders)
-dataloader = DataLoader(dataset, batch_size=config['batch_size'], shuffle=True)
+dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
 
 run_id = str(int(time.time()))
 model = ESRNN(num_series=len(dataset), config=config)

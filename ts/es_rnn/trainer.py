@@ -14,24 +14,24 @@ from ts.utils.loss_modules import PinballLoss, np_sMAPE
 class ESRNNTrainer(nn.Module):
     def __init__(self, model, dataloader, run_id, config, ohe_headers, csv_path):
         super(ESRNNTrainer, self).__init__()
-        self.model = model.to(config['device'])
+        self.model = model.to(config["device"])
         self.config = config
         self.dl = dataloader
         self.ohe_headers = ohe_headers
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=config['learning_rate'])
-        # self.optimizer = torch.optim.ASGD(self.model.parameters(), lr=config['learning_rate'])
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=config["learning_rate"])
+        # self.optimizer = torch.optim.ASGD(self.model.parameters(), lr=config["learning_rate"])
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
-                                                         step_size=config['lr_anneal_step'],
-                                                         gamma=config['lr_anneal_rate'])
-        self.criterion = PinballLoss(self.config['training_tau'],
-                                     self.config['output_size'] * self.config['batch_size'], self.config['device'])
+                                                         step_size=config["lr_anneal_step"],
+                                                         gamma=config["lr_anneal_rate"])
+        self.criterion = PinballLoss(self.config["training_tau"],
+                                     self.config["output_size"] * self.config["batch_size"], self.config["device"])
         self.epochs = 0
-        self.max_epochs = config['num_of_train_epochs']
+        self.max_epochs = config["num_of_train_epochs"]
         self.run_id = str(run_id)
-        self.prod_str = 'prod' if config['prod'] else 'dev'
+        self.prod_str = "prod" if config["prod"] else "dev"
         self.csv_save_path = csv_path
         logger_path = str(
-            csv_path / "tensorboard/esrnn" / ("train%s%s%s" % (self.config['variable'], self.prod_str, self.run_id)))
+            csv_path / "tensorboard/esrnn" / ("train%s%s%s" % (self.config["variable"], self.prod_str, self.run_id)))
         self.log = Logger(logger_path)
 
     def train_epochs(self):
@@ -44,11 +44,11 @@ class ESRNNTrainer(nn.Module):
             epoch_val_loss = self.val()
             if e == 0:
                 file_path = self.csv_save_path / "validation_losses.csv"
-                with open(file_path, 'w') as f:
-                    f.write('epoch,training_loss,validation_loss\n')
-            with open(file_path, 'a') as f:
-                f.write(','.join([str(e), str(epoch_loss), str(epoch_val_loss)]) + '\n')
-        print('Total Training Mins: %5.2f' % ((time.time() - start_time) / 60))
+                with open(file_path, "w") as f:
+                    f.write("epoch,training_loss,validation_loss\n")
+            with open(file_path, "a") as f:
+                f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
+        print("Total Training Mins: %5.2f" % ((time.time() - start_time) / 60))
 
     def train(self):
         self.model.train()
@@ -59,14 +59,14 @@ class ESRNNTrainer(nn.Module):
             loss = self.train_batch(train, val, test, info_cat, idx)
             epoch_loss += loss
             end = time.time()
-            self.log.log_scalar('Iteration time', end - start, batch_num + 1 * (self.epochs + 1))
+            self.log.log_scalar("Iteration time", end - start, batch_num + 1 * (self.epochs + 1))
         epoch_loss = epoch_loss / (batch_num + 1)
         self.epochs += 1
 
         # LOG EPOCH LEVEL INFORMATION
-        print('[TRAIN]  Epoch [%d/%d]   Loss: %.4f' % (
+        print("[TRAIN]  Epoch [%d/%d]   Loss: %.4f" % (
             self.epochs, self.max_epochs, epoch_loss))
-        info = {'loss': epoch_loss}
+        info = {"loss": epoch_loss}
 
         self.log_values(info)
         self.log_hists()
@@ -82,7 +82,7 @@ class ESRNNTrainer(nn.Module):
         # Computing loss between predicted and truth training data deseasonalized and normalized.
         loss = self.criterion(network_pred, network_act)
         loss.backward()
-        nn.utils.clip_grad_value_(self.model.parameters(), self.config['gradient_clipping'])
+        nn.utils.clip_grad_value_(self.model.parameters(), self.config["gradient_clipping"])
         self.optimizer.step()
         self.scheduler.step()
         return float(loss)
@@ -108,20 +108,20 @@ class ESRNNTrainer(nn.Module):
             hold_out_loss = hold_out_loss / (batch_num + 1)
 
             info_cat_overall = np.concatenate(info_cats, axis=0)
-            _hold_out_df = pd.DataFrame({'acts': acts, 'preds': preds})
+            _hold_out_df = pd.DataFrame({"acts": acts, "preds": preds})
             cats = [val for val in self.ohe_headers[info_cat_overall.argmax(axis=1)] for _ in
-                    range(self.config['output_size'])]
-            _hold_out_df['category'] = cats
+                    range(self.config["output_size"])]
+            _hold_out_df["category"] = cats
 
             overall_hold_out_df = copy.copy(_hold_out_df)
-            overall_hold_out_df['category'] = ['Overall' for _ in cats]
+            overall_hold_out_df["category"] = ["Overall" for _ in cats]
 
             overall_hold_out_df = pd.concat((_hold_out_df, overall_hold_out_df))
-            grouped_results = overall_hold_out_df.groupby(['category']).apply(
+            grouped_results = overall_hold_out_df.groupby(["category"]).apply(
                 lambda x: np_sMAPE(x.preds, x.acts, x.shape[0]))
 
             results = grouped_results.to_dict()
-            results['hold_out_loss'] = float(hold_out_loss.detach().cpu())
+            results["hold_out_loss"] = float(hold_out_loss.detach().cpu())
             print(results)
 
             self.log_values(results)
@@ -136,11 +136,11 @@ class ESRNNTrainer(nn.Module):
         return hold_out_loss.detach().cpu().item()
 
     def save(self, save_dir=Path(".")):
-        print('Loss decreased, saving model!')
+        print("Loss decreased, saving model!")
         file_path = save_dir / "models/esrnn" / self.run_id / self.prod_str
         file_path.mkdir(parents=True, exist_ok=True)
         model_path = file_path / "model-{}.pyt".format(self.epochs)
-        torch.save({'state_dict': self.model.state_dict()}, model_path)
+        torch.save({"state_dict": self.model.state_dict()}, model_path)
 
     def log_values(self, info):
 
@@ -161,11 +161,11 @@ class ESRNNTrainer(nn.Module):
                     batch_params[name].append(value.data.cpu().numpy())
                     batch_params["%s/grad" % name].append(value.grad.cpu().numpy())
                 else:
-                    tag = tag.replace('.', '/')
+                    tag = tag.replace(".", "/")
                     self.log.log_histogram(tag, value.data.cpu().numpy(), self.epochs + 1)
-                    self.log.log_histogram(tag + '/grad', value.grad.data.cpu().numpy(), self.epochs + 1)
+                    self.log.log_histogram(tag + "/grad", value.grad.data.cpu().numpy(), self.epochs + 1)
             else:
-                print('Not printing %s because it\'s not updating' % tag)
+                print("Not printing %s because it\"s not updating" % tag)
 
         for tag, v in batch_params.items():
             vals = np.concatenate(np.array(v))
