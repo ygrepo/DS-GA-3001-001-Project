@@ -7,12 +7,13 @@ import pandas as pd
 import torch
 import torch.nn as nn
 
+from ts.utils.helper_funcs import load, save
 from ts.utils.logger import Logger
 from ts.utils.loss_modules import PinballLoss, np_sMAPE
 
 
 class ESRNNTrainer(nn.Module):
-    def __init__(self, model, dataloader, run_id, config, ohe_headers, csv_path):
+    def __init__(self, model, dataloader, run_id, config, ohe_headers, csv_path, reload):
         super(ESRNNTrainer, self).__init__()
         self.model = model.to(config["device"])
         self.config = config
@@ -33,21 +34,31 @@ class ESRNNTrainer(nn.Module):
         logger_path = str(
             csv_path / "tensorboard/esrnn" / ("train%s%s%s" % (self.config["variable"], self.prod_str, self.run_id)))
         self.log = Logger(logger_path)
+        self.reload = reload
 
     def train_epochs(self):
         max_loss = 1e8
         start_time = time.time()
+        file_path = Path(".") / "models/esrnn"
+        if self.reload:
+            load(file_path, self.model, self.optimizer)
         for e in range(self.max_epochs):
             epoch_loss = self.train()
             if epoch_loss < max_loss:
-                self.save()
-            epoch_val_loss = self.val()
+                print("Loss decreased, saving model!")
+                file_path = Path(".") / "models/esrnn"
+                save(file_path, self.model, self.optimizer)
+                max_loss = epoch_loss
+            file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
+            file_path_validation_loss = file_path / "validation_losses.csv"
             if e == 0:
-                file_path = self.csv_save_path / "validation_losses.csv"
-                with open(file_path, "w") as f:
+                file_path.mkdir(parents=True, exist_ok=True)
+                with open(file_path_validation_loss, "w") as f:
                     f.write("epoch,training_loss,validation_loss\n")
-            with open(file_path, "a") as f:
+            epoch_val_loss = self.val(file_path)
+            with open(file_path_validation_loss, "a") as f:
                 f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
+            self.epochs += 1
         print("Total Training Mins: %5.2f" % ((time.time() - start_time) / 60))
 
     def train(self):
@@ -61,7 +72,6 @@ class ESRNNTrainer(nn.Module):
             end = time.time()
             self.log.log_scalar("Iteration time", end - start, batch_num + 1 * (self.epochs + 1))
         epoch_loss = epoch_loss / (batch_num + 1)
-        self.epochs += 1
 
         # LOG EPOCH LEVEL INFORMATION
         print("[TRAIN]  Epoch [%d/%d]   Loss: %.4f" % (
@@ -87,7 +97,7 @@ class ESRNNTrainer(nn.Module):
         self.scheduler.step()
         return float(loss)
 
-    def val(self):
+    def val(self, file_path):
         self.model.eval()
         with torch.no_grad():
             acts = []
@@ -125,22 +135,10 @@ class ESRNNTrainer(nn.Module):
             print(results)
 
             self.log_values(results)
-
-            file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
-            file_path.mkdir(parents=True, exist_ok=True)
-
             grouped_path = file_path / ("grouped_results-{}.csv".format(self.epochs))
             grouped_results.to_csv(grouped_path, header=True)
-            self.csv_save_path = file_path
 
         return hold_out_loss.detach().cpu().item()
-
-    def save(self, save_dir=Path(".")):
-        print("Loss decreased, saving model!")
-        file_path = save_dir / "models/esrnn" / self.run_id / self.prod_str
-        file_path.mkdir(parents=True, exist_ok=True)
-        model_path = file_path / "model-{}.pyt".format(self.epochs)
-        torch.save({"state_dict": self.model.state_dict()}, model_path)
 
     def log_values(self, info):
 

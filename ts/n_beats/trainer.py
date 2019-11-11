@@ -10,13 +10,14 @@ import torch.nn as nn
 from torch import optim
 
 from ts.n_beats.model import NBeatsNet
+from ts.utils.helper_funcs import load, save
 from ts.utils.logger import Logger
 from ts.utils.loss_modules import PinballLoss, np_sMAPE
 
 
 class Trainer(nn.Module):
     def __init__(self, device, model, dataloader, run_id, config, forecast_length, backcast_length, ohe_headers,
-                 csv_path):
+                 csv_path, reload):
         super(Trainer, self).__init__()
         self.device = device
         self.model = model.to(config["device"])
@@ -41,22 +42,31 @@ class Trainer(nn.Module):
         self.forecast_length = forecast_length
         self.backcast_length = backcast_length
         self.ohe_headers = ohe_headers
+        self.reload = reload
 
     def train_epochs(self):
         max_loss = 1e8
         start_time = time.time()
-        initial_epoch_step = self.load(self.model, self.optimizer)
-        for e in range(initial_epoch_step, self.max_epochs):
+        file_path = Path(".") / "models/nbeats"
+        if self.reload:
+            load(file_path, self.model, self.optimizer)
+        for e in range(self.max_epochs):
             epoch_loss = self.train()
             if epoch_loss < max_loss:
-                self.save(self.model, self.optimizer, e)
-            epoch_val_loss = self.val(True)
-            file_path = self.csv_save_path / "validation_losses.csv"
+                print("Loss decreased, saving model!")
+                file_path = Path(".") / "models/nbeats"
+                save(file_path, self.model, self.optimizer)
+                max_loss = epoch_loss
+            file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
+            file_path_validation_loss = file_path / "validation_losses.csv"
             if e == 0:
-                with open(file_path, "w") as f:
+                file_path.mkdir(parents=True, exist_ok=True)
+                with open(file_path_validation_loss, "w") as f:
                     f.write("epoch,training_loss,validation_loss\n")
-            with open(file_path, "a") as f:
+            epoch_val_loss = self.val(file_path, testing=True)
+            with open(file_path_validation_loss, "a") as f:
                 f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
+            self.epochs += 1
         print("Total Training Mins: %5.2f" % ((time.time() - start_time) / 60))
 
     def train(self):
@@ -70,7 +80,6 @@ class Trainer(nn.Module):
             end = time.time()
             self.log.log_scalar("Iteration time", end - start, batch_num + 1 * (self.epochs + 1))
         epoch_loss = epoch_loss / (batch_num + 1)
-        self.epochs += 1
 
         # LOG EPOCH LEVEL INFORMATION
         print("[TRAIN]  Epoch [%d/%d]   Loss: %.4f" % (
@@ -103,7 +112,7 @@ class Trainer(nn.Module):
         self.scheduler.step()
         return float(loss)
 
-    def val(self, testing=False):
+    def val(self, file_path, testing=False):
         self.model.eval()
         with torch.no_grad():
             acts = []
@@ -143,34 +152,10 @@ class Trainer(nn.Module):
 
             self.log_values(results)
 
-            file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
-            file_path.mkdir(parents=True, exist_ok=True)
-
             grouped_path = file_path / ("grouped_results-{}.csv".format(self.epochs))
             grouped_results.to_csv(grouped_path, header=True)
-            self.csv_save_path = file_path
 
         return hold_out_loss.detach().cpu().item()
-
-    def save(self, model, optimiser, grad_step, save_dir=Path(".")):
-        file_path = save_dir / "models/nbeats" / self.run_id / self.prod_str
-        file_path.mkdir(parents=True, exist_ok=True)
-        model_path = file_path / "model-{}.pyt".format(self.epochs)
-        torch.save({
-            "grad_step": grad_step,
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimiser.state_dict(),
-        }, model_path)
-
-    def load(self, model, optimiser):
-        # if os.path.exists(CHECKPOINT_NAME):
-        #     checkpoint = torch.load(CHECKPOINT_NAME)
-        #     model.load_state_dict(checkpoint["model_state_dict"])
-        #     optimiser.load_state_dict(checkpoint["optimizer_state_dict"])
-        #     grad_step = checkpoint["grad_step"]
-        #     print(f"Restored checkpoint from {CHECKPOINT_NAME}.")
-        #     return grad_step
-        return 0
 
     def log_values(self, info):
 

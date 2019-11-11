@@ -31,7 +31,8 @@ test_path = str(BASE_DIR / "test/%s-test.csv") % (config["variable"])
 
 sample = True
 train, train_idx, val, test, test_idx = create_datasets(train_path, test_path, config["output_size"], sample=sample)
-print(train.shape, val.shape, test.shape)
+print("#of train ts:{}, dimensions of validation ts:{}, dimensions of test ts:{}".format(train.shape, val.shape,
+                                                                                         test.shape))
 
 dataset = SeriesDataset(train, val, test, info, config["variable"], config["chop_val"], config["device"],
                         train_idx, sample)
@@ -40,5 +41,7 @@ dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
 
 run_id = str(int(time.time()))
 model = ESRNN(num_series=len(dataset), config=config)
-tr = ESRNNTrainer(model, dataloader, run_id, config, ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR)
+reload = True
+tr = ESRNNTrainer(model, dataloader, run_id, config, ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR,
+                  reload=reload)
 tr.train_epochs()
