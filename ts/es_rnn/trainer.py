@@ -4,7 +4,7 @@ import numpy as np
 import copy
 import torch
 import torch.nn as nn
-from ts.es_rnn.loss_modules import PinballLoss, sMAPE, np_sMAPE
+from ts.utils.loss_modules import PinballLoss, np_sMAPE
 from ts.utils.logger import Logger
 import pandas as pd
 
