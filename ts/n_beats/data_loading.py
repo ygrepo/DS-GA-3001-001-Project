@@ -4,23 +4,23 @@ import torch
 from torch.utils.data import Dataset
 
 
-def get_data(num_samples, backcast_length, forecast_length, signal_type='seasonality', random=False):
+def get_data(num_samples, backcast_length, forecast_length, signal_type="seasonality", random=False):
     def get_x_y():
         lin_space = np.linspace(-backcast_length, forecast_length, backcast_length + forecast_length)
         if random:
             offset = np.random.standard_normal() * 0.1
         else:
             offset = 1
-        if signal_type == 'trend':
+        if signal_type == "trend":
             x = lin_space + offset
-        elif signal_type == 'seasonality':
+        elif signal_type == "seasonality":
             x = np.cos(2 * np.random.randint(low=1, high=3) * np.pi * lin_space)
             x += np.cos(2 * np.random.randint(low=2, high=4) * np.pi * lin_space)
             x += lin_space * offset + np.random.rand() * 0.1
-        elif signal_type == 'cos':
+        elif signal_type == "cos":
             x = np.cos(2 * np.pi * lin_space)
         else:
-            raise Exception('Unknown signal type.')
+            raise Exception("Unknown signal type.")
         x -= np.minimum(np.min(x), 0)
         x /= np.max(np.abs(x))
         x = np.expand_dims(x, axis=0)
@@ -57,7 +57,7 @@ def data_generator(x_full, y_full, bs):
 def read_file(file_location, sampling=False, sample_size=5):
     series = []
     ids = dict()
-    with open(file_location, 'r') as file:
+    with open(file_location, "r") as file:
         data = file.read().split("\n")
 
     for i in range(1, len(data) - 1):
@@ -121,7 +121,7 @@ class SeriesDataset(Dataset):
         data_train, mask = chop_series(data_train, chop_val)
         if sample:
             info = info[(info["M4id"].isin(train_idx.keys())) & (info["SP"] == variable)]
-        self.dataInfoCatOHE = pd.get_dummies(info[info['SP'] == variable]['category'])
+        self.dataInfoCatOHE = pd.get_dummies(info[info["SP"] == variable]["category"])
         self.dataInfoCatHeaders = np.array([i for i in self.dataInfoCatOHE.columns.values])
         self.dataInfoCat = torch.from_numpy(self.dataInfoCatOHE[mask].values).float()
         self.dataTrain = [torch.tensor(data_train[i], dtype=torch.float) for i in range(len(data_train))]

@@ -44,7 +44,7 @@ def train_100_grad_steps(data, device, net, optimiser, test_losses):
         optimiser.step()
         if global_step % 30 == 0:
             print(
-                f'grad_step = {str(global_step).zfill(6)}, tr_loss = {loss.item():.6f}, te_loss = {test_losses[-1]:.6f}')
+                f"grad_step = {str(global_step).zfill(6)}, tr_loss = {loss.item():.6f}, te_loss = {test_losses[-1]:.6f}")
         if global_step > 0 and global_step % 100 == 0:
             with torch.no_grad():
                 #    save(net, optimiser, global_step)
@@ -63,9 +63,9 @@ def eval_test(backcast_length, forecast_length, net, norm_constant, test_losses,
         ff, xx, yy = p[i] * norm_constant, x_test[i] * norm_constant, y_test[i] * norm_constant
         # plt.subplot(subplots[plot_id])
         # plt.grid()
-        # plot_scatter(range(0, backcast_length), xx, color='b')
-        # plot_scatter(range(backcast_length, backcast_length + forecast_length), yy, color='g')
-        # plot_scatter(range(backcast_length, backcast_length + forecast_length), ff, color='r')
+        # plot_scatter(range(0, backcast_length), xx, color="b")
+        # plot_scatter(range(backcast_length, backcast_length + forecast_length), yy, color="g")
+        # plot_scatter(range(backcast_length, backcast_length + forecast_length), ff, color="r")
     # plt.show()
 
 
@@ -79,12 +79,12 @@ def train(backcast_length, forecast_length, net, norm_constant, x_test, y_test, 
 
 
 def main_old():
-    device = torch.device('cpu')  # use the trainer.py to run on GPU.
+    device = torch.device("cpu")  # use the trainer.py to run on GPU.
     forecast_length = 18
     backcast_length = 3 * forecast_length
     batch_size = 10  # greater than 4 for viz
 
-    milk = pd.read_csv('n_beats/milk.csv', index_col=0, parse_dates=True)
+    milk = pd.read_csv("n_beats/milk.csv", index_col=0, parse_dates=True)
 
     print(milk.head())
     milk = milk.values  # just keep np array here for simplicity.
@@ -121,31 +121,32 @@ def main_old():
 
 
 def main():
-    device = torch.device('cpu')  # use the trainer.py to run on GPU.
+    device = torch.device("cpu")  # use the trainer.py to run on GPU.
     print("Start")
 
-    BASE_DIR = Path("/Users/yg/code/github/esrnn-gpu/data/raw/")
-    print('loading config')
-    config = get_config('Monthly')
+    BASE_DIR = Path("data/raw/")
+    LOG_DIR = Path("logs/nbeats")
+    print("Loading config")
+    config = get_config("Monthly")
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
 
-    print('loading data')
+    print("loading data")
     info = pd.read_csv(str(BASE_DIR / "M4info.csv"))
-    train_path = str(BASE_DIR / "train/%s-train.csv") % (config['variable'])
-    test_path = str(BASE_DIR / "test/%s-test.csv") % (config['variable'])
+    train_path = str(BASE_DIR / "train/%s-train.csv") % (config["variable"])
+    test_path = str(BASE_DIR / "test/%s-test.csv") % (config["variable"])
 
-    sample = False
-    train, train_idx, val, test, test_idx = create_datasets(train_path, test_path, config['output_size'],
+    sample = True
+    train, train_idx, val, test, test_idx = create_datasets(train_path, test_path, config["output_size"],
                                                             sample=sample, sampling_size=4)
     print("#of train ts:{}, dimensions of validation ts:{}, dimensions of test ts:{}".format(train.shape, val.shape,
                                                                                              test.shape))
 
     dataset = SeriesDataset(info, config["variable"], sample, train, train_idx, val, test, backcast_length,
                             forecast_length,
-                            config['device'])
-    # dataloader = DataLoader(dataset, batch_size=config['batch_size'], collate_fn=collate_lines, shuffle=True)
-    dataloader = DataLoader(dataset, batch_size=config['batch_size'], shuffle=False)
+                            config["device"])
+    # dataloader = DataLoader(dataset, batch_size=config["batch_size"], collate_fn=collate_lines, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=False)
     model = NBeatsNet(stack_types=[NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
                       forecast_length=forecast_length,
                       thetas_dims=[7, 8],
@@ -156,9 +157,9 @@ def main():
                       device=device)
     run_id = str(int(time.time()))
     trainer = Trainer(device, model, dataloader, run_id, config, forecast_length, backcast_length,
-                      ohe_headers=dataset.dataInfoCatHeaders)
+                      ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR)
     trainer.train_epochs()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

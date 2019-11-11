@@ -1,16 +1,18 @@
-import os
-import time
-import numpy as np
 import copy
+import time
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
-from ts.utils.loss_modules import PinballLoss, np_sMAPE
+
 from ts.utils.logger import Logger
-import pandas as pd
+from ts.utils.loss_modules import PinballLoss, np_sMAPE
 
 
 class ESRNNTrainer(nn.Module):
-    def __init__(self, model, dataloader, run_id, config, ohe_headers):
+    def __init__(self, model, dataloader, run_id, config, ohe_headers, csv_path):
         super(ESRNNTrainer, self).__init__()
         self.model = model.to(config['device'])
         self.config = config
@@ -27,20 +29,21 @@ class ESRNNTrainer(nn.Module):
         self.max_epochs = config['num_of_train_epochs']
         self.run_id = str(run_id)
         self.prod_str = 'prod' if config['prod'] else 'dev'
-        self.log = Logger("../logs/train%s%s%s" % (self.config['variable'], self.prod_str, self.run_id))
-        self.csv_save_path = None
+        self.csv_save_path = csv_path
+        logger_path = str(
+            csv_path / "tensorboard/esrnn" / ("train%s%s%s" % (self.config['variable'], self.prod_str, self.run_id)))
+        self.log = Logger(logger_path)
 
     def train_epochs(self):
         max_loss = 1e8
         start_time = time.time()
         for e in range(self.max_epochs):
-            self.scheduler.step()
             epoch_loss = self.train()
             if epoch_loss < max_loss:
                 self.save()
             epoch_val_loss = self.val()
             if e == 0:
-                file_path = os.path.join(self.csv_save_path, 'validation_losses.csv')
+                file_path = self.csv_save_path / "validation_losses.csv"
                 with open(file_path, 'w') as f:
                     f.write('epoch,training_loss,validation_loss\n')
             with open(file_path, 'a') as f:
@@ -81,6 +84,7 @@ class ESRNNTrainer(nn.Module):
         loss.backward()
         nn.utils.clip_grad_value_(self.model.parameters(), self.config['gradient_clipping'])
         self.optimizer.step()
+        self.scheduler.step()
         return float(loss)
 
     def val(self):
@@ -118,24 +122,24 @@ class ESRNNTrainer(nn.Module):
 
             results = grouped_results.to_dict()
             results['hold_out_loss'] = float(hold_out_loss.detach().cpu())
+            print(results)
 
             self.log_values(results)
 
-            file_path = os.path.join("logs", "grouped_results", self.run_id, self.prod_str)
-            os.makedirs(file_path, exist_ok=True)
+            file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
+            file_path.mkdir(parents=True, exist_ok=True)
 
-            print(results)
-            grouped_path = os.path.join(file_path, 'grouped_results-{}.csv'.format(self.epochs))
-            grouped_results.to_csv(grouped_path)
+            grouped_path = file_path / ("grouped_results-{}.csv".format(self.epochs))
+            grouped_results.to_csv(grouped_path, header=True)
             self.csv_save_path = file_path
 
         return hold_out_loss.detach().cpu().item()
 
-    def save(self, save_dir="."):
+    def save(self, save_dir=Path(".")):
         print('Loss decreased, saving model!')
-        file_path = os.path.join(save_dir, 'models', self.run_id, self.prod_str)
-        model_path = os.path.join(file_path, 'model-{}.pyt'.format(self.epochs))
-        os.makedirs(file_path, exist_ok=True)
+        file_path = save_dir / "models/esrnn" / self.run_id / self.prod_str
+        file_path.mkdir(parents=True, exist_ok=True)
+        model_path = file_path / "model-{}.pyt".format(self.epochs)
         torch.save({'state_dict': self.model.state_dict()}, model_path)
 
     def log_values(self, info):

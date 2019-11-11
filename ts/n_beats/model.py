@@ -6,7 +6,7 @@ from torch.nn import functional as F
 
 def seasonality_model(thetas, t, device):
     p = thetas.size()[-1]
-    assert p < 10, 'thetas_dim is too big.'
+    assert p < 10, "thetas_dim is too big."
     p1, p2 = (p // 2, p // 2) if p % 2 == 0 else (p // 2, p // 2 + 1)
     s1 = torch.tensor([np.cos(2 * np.pi * i * t) for i in range(p1)]).float()  # H/2-1
     s2 = torch.tensor([np.sin(2 * np.pi * i * t) for i in range(p2)]).float()
@@ -16,7 +16,7 @@ def seasonality_model(thetas, t, device):
 
 def trend_model(thetas, t, device):
     p = thetas.size()[-1]
-    assert p <= 4, 'thetas_dim is too big.'
+    assert p <= 4, "thetas_dim is too big."
     T = torch.tensor([t ** i for i in range(p)]).float()
     return thetas.mm(T.to(device))
 
@@ -58,9 +58,9 @@ class Block(nn.Module):
 
     def __str__(self):
         block_type = type(self).__name__
-        return f'{block_type}(units={self.units}, thetas_dim={self.thetas_dim}, ' \
-               f'backcast_length={self.backcast_length}, forecast_length={self.forecast_length}, ' \
-               f'share_thetas={self.share_thetas}) at @{id(self)}'
+        return f"{block_type}(units={self.units}, thetas_dim={self.thetas_dim}, " \
+               f"backcast_length={self.backcast_length}, forecast_length={self.forecast_length}, " \
+               f"share_thetas={self.share_thetas}) at @{id(self)}"
 
 
 class SeasonalityBlock(Block):
@@ -111,9 +111,9 @@ class GenericBlock(Block):
 
 
 class NBeatsNet(nn.Module):
-    SEASONALITY_BLOCK = 'seasonality'
-    TREND_BLOCK = 'trend'
-    GENERIC_BLOCK = 'generic'
+    SEASONALITY_BLOCK = "seasonality"
+    TREND_BLOCK = "trend"
+    GENERIC_BLOCK = "generic"
 
     def __init__(self,
                  device,
@@ -135,7 +135,7 @@ class NBeatsNet(nn.Module):
         self.thetas_dim = thetas_dims
         self.parameters = []
         self.device = device
-        print(f'| N-Beats')
+        print(f"| N-Beats")
         for stack_id in range(len(self.stack_types)):
             self.stacks.append(self.create_stack(stack_id))
         self.parameters = nn.ParameterList(self.parameters)
@@ -143,7 +143,7 @@ class NBeatsNet(nn.Module):
 
     def create_stack(self, stack_id):
         stack_type = self.stack_types[stack_id]
-        print(f'| --  Stack {stack_type.title()} (#{stack_id}) (share_weights_in_stack={self.share_weights_in_stack})')
+        print(f"| --  Stack {stack_type.title()} (#{stack_id}) (share_weights_in_stack={self.share_weights_in_stack})")
         blocks = []
         for block_id in range(self.nb_blocks_per_stack):
             block_init = NBeatsNet.select_block(stack_type)
@@ -153,7 +153,7 @@ class NBeatsNet(nn.Module):
                 block = block_init(self.hidden_layer_units, self.thetas_dim[stack_id],
                                    self.device, self.backcast_length, self.forecast_length)
                 self.parameters.extend(block.parameters())
-            print(f'     | -- {block}')
+            print(f"     | -- {block}")
             blocks.append(block)
         return blocks
 

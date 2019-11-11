@@ -17,7 +17,8 @@ try:
 except KeyError:
     user_paths = []
 
-BASE_DIR = Path("/Users/yg/code/github/DS-GA-3001-001-Project/data/raw/")
+BASE_DIR = Path("data/raw/")
+LOG_DIR = Path("logs/esrnn")
 print('loading config')
 # config = get_config("Quarterly")
 config = get_config('Monthly')
@@ -39,5 +40,5 @@ dataloader = DataLoader(dataset, batch_size=config['batch_size'], shuffle=True)
 
 run_id = str(int(time.time()))
 model = ESRNN(num_series=len(dataset), config=config)
-tr = ESRNNTrainer(model, dataloader, run_id, config, ohe_headers=dataset.dataInfoCatHeaders)
+tr = ESRNNTrainer(model, dataloader, run_id, config, ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR)
 tr.train_epochs()
