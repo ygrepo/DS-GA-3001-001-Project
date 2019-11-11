@@ -121,7 +121,7 @@ class ESRNNTrainer(nn.Module):
 
             self.log_values(results)
 
-            file_path = os.path.join("../logs", "grouped_results", self.run_id, self.prod_str)
+            file_path = os.path.join("logs", "grouped_results", self.run_id, self.prod_str)
             os.makedirs(file_path, exist_ok=True)
 
             print(results)
@@ -131,7 +131,7 @@ class ESRNNTrainer(nn.Module):
 
         return hold_out_loss.detach().cpu().item()
 
-    def save(self, save_dir='..'):
+    def save(self, save_dir="."):
         print('Loss decreased, saving model!')
         file_path = os.path.join(save_dir, 'models', self.run_id, self.prod_str)
         model_path = os.path.join(file_path, 'model-{}.pyt'.format(self.epochs))

@@ -24,3 +24,6 @@ data/
 
 # Ignore log files
 logs/
+
+# Ignore models
+models/
