@@ -156,8 +156,8 @@ def main():
                       share_weights_in_stack=True,
                       device=device)
     run_id = str(int(time.time()))
-    reload = False
-    trainer = Trainer(device, model, dataloader, run_id, config, forecast_length, backcast_length,
+    reload =  True
+    trainer = Trainer("nbeats", model, dataloader, run_id, config, forecast_length, backcast_length,
                       ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, reload=reload)
     trainer.train_epochs()
 

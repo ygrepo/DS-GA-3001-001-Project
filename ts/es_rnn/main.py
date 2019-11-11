@@ -42,6 +42,6 @@ dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
 run_id = str(int(time.time()))
 model = ESRNN(num_series=len(dataset), config=config)
 reload = True
-tr = ESRNNTrainer(model, dataloader, run_id, config, ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR,
+tr = ESRNNTrainer("esrnn", model, dataloader, run_id, config, ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR,
                   reload=reload)
 tr.train_epochs()
