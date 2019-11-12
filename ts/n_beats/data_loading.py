@@ -62,8 +62,8 @@ def read_file(file_location, sampling=False, sample_size=5):
 
     for i in range(1, len(data) - 1):
         row = data[i].replace('"', '').split(',')
-        ts_values = [float(j) for j in row[1:] if j != ""]
-        series.append(np.array(ts_values))
+        ts_values = np.array([float(j) for j in row[1:] if j != ""])
+        series.append(ts_values)
         ids[row[0]] = i - 1
         if sampling and i == sample_size:
             series = np.asarray(series)
@@ -109,7 +109,9 @@ def determine_chop_value(data, backcast_length, forecast_length):
         if length > 0:
             ts_lengths.append(len(ts))
         # print(len(ts), length)
-    return np.amin(ts_lengths).astype(dtype=int)
+    if ts_lengths:
+        return np.amin(np.array(ts_lengths)).astype(dtype=int)
+    return -1
     # return np.quantile(ts_lengths, 0.8).astype(dtype=int)
 
 
