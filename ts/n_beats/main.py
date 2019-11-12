@@ -121,13 +121,12 @@ def main_old():
 
 
 def main():
-    device = torch.device("cpu")  # use the trainer.py to run on GPU.
     print("Start")
 
     BASE_DIR = Path("data/raw/")
     LOG_DIR = Path("logs/nbeats")
     print("Loading config")
-    config = get_config("Monthly")
+    config = get_config("Quarterly")
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
 
@@ -147,16 +146,16 @@ def main():
                             config["device"])
     # dataloader = DataLoader(dataset, batch_size=config["batch_size"], collate_fn=collate_lines, shuffle=True)
     dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=False)
-    model = NBeatsNet(stack_types=[NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
+    model = NBeatsNet(stack_types=config["stack_types"],
                       forecast_length=forecast_length,
-                      thetas_dims=[7, 8],
-                      nb_blocks_per_stack=3,
+                      thetas_dims=config["thetas_dims"],
+                      nb_blocks_per_stack=config["nb_blocks_per_stack"],
                       backcast_length=backcast_length,
-                      hidden_layer_units=128,
-                      share_weights_in_stack=True,
-                      device=device)
+                      hidden_layer_units=config["hidden_layer_units"],
+                      share_weights_in_stack=config["share_weights_in_stack"],
+                      device=config["device"])
     run_id = str(int(time.time()))
-    reload =  True
+    reload = False
     trainer = Trainer("nbeats", model, dataloader, run_id, config, forecast_length, backcast_length,
                       ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, reload=reload)
     trainer.train_epochs()
