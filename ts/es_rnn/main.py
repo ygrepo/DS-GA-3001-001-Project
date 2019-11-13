@@ -1,7 +1,7 @@
 import os
 import time
 from pathlib import Path
-
+import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
 
@@ -10,9 +10,13 @@ from ts.es_rnn.data_loading import create_datasets, SeriesDataset
 from ts.es_rnn.model import ESRNN
 from ts.es_rnn.trainer import ESRNNTrainer
 
+from ts.utils.helper_funcs import set_seed
 
+
+set_seed(0)
 model_name = "esrnn"
 print("Starting training " + model_name)
+
 try:
     user_paths = os.environ["PYTHONPATH"].split(os.pathsep)
     print(user_paths)

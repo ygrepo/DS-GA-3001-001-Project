@@ -8,9 +8,13 @@ from ts.n_beats.config import get_config
 from ts.n_beats.data_loading import create_datasets, SeriesDataset
 from ts.n_beats.model import NBeatsNet
 from ts.n_beats.trainer import Trainer
+from ts.utils.helper_funcs import set_seed
 
 
 def main():
+
+    set_seed(0)
+    
     model_name = "nbeats"
     print("Starting training " + model_name)
 

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import torch
-
+import random
 
 def colwise_batch_mask(target_shape_tuple, target_lens):
     # takes in (seq_len, B) shape and returns mask of same shape with ones up to the target lens
@@ -43,6 +43,15 @@ def load(file_path, model, optimiser):
         model.load_state_dict(checkpoint["model_state_dict"])
         optimiser.load_state_dict(checkpoint["optimizer_state_dict"])
         print(f"Restored checkpoint from {model_path}.")
+
+# Reproducibility
+def set_seed(seed):
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
 
 
 def plot_ts(original_ts, predicted_ts, idx, path, number_to_plot=1):
