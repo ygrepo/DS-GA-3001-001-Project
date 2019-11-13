@@ -53,13 +53,17 @@ def set_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
 
+def shuffled_arrays(a, b):
+    assert len(a) == len(b)
+    p = np.random.permutation(len(a))
+    return a[p], b[p], p
 
-def plot_ts(original_ts, predicted_ts, idx, path, number_to_plot=1):
+def plot_ts(original_ts, predicted_ts, ts_labels, cats, path, number_to_plot=1):
     path.mkdir(parents=True, exist_ok=True)
     fig, axes = plt.subplots(1, number_to_plot, figsize=(17, 4))
     plt.subplots_adjust(hspace=.3)
 
-    fig_label_iter = iter(idx)
+    fig_label_iter = iter(cats)
     for i in range(number_to_plot):
         if number_to_plot == 1:
             ax = axes
@@ -72,7 +76,7 @@ def plot_ts(original_ts, predicted_ts, idx, path, number_to_plot=1):
         ax.set_xlabel("Time")
         ax.set_ylabel("Observations")
         ts_label = next(fig_label_iter)
-        ax.set_title(ts_label + " time Series")
+        ax.set_title(ts_label + " time Series:" + ts_labels[i])
         ax.legend(("original", "predicted"))
     plt.savefig(path / "original_time_series.png")
     plt.tight_layout()

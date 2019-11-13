@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
-
+from ts.utils.helper_funcs import shuffled_arrays
 
 def read_file(file_location, sampling=False, sample_size=5):
     series = []
@@ -41,7 +41,11 @@ def chop_series(train, chop_val):
 
 def create_datasets(train_file_location, test_file_location, output_size, sample=False, sampling_size=5):
     train, train_idx = read_file(train_file_location, sample, sampling_size)
+    #train, train_idx,p = shuffled_arrays(train, train_idx)
+
     test, test_idx = read_file(test_file_location, sample, sampling_size)
+    #test = test[p], test_idx = test_idx[p]
+
     train, val = create_val_set(train, output_size)
     if sample:
         print("Sampling train data for {}".format(train_idx.keys()))
@@ -51,16 +55,17 @@ def create_datasets(train_file_location, test_file_location, output_size, sample
 
 class SeriesDataset(Dataset):
 
-    def __init__(self, dataTrain, dataVal, dataTest, info, variable, chop_value, device, train_idx, sample=False):
+    def __init__(self, dataTrain, dataVal, dataTest, info, variable, chop_value, device, ts_labels, sample=False):
         dataTrain, mask = chop_series(dataTrain, chop_value)
         if sample:
-            info = info[(info["M4id"].isin(train_idx.keys())) & (info["SP"] == variable)]
+            info = info[(info["M4id"].isin(ts_labels.keys())) & (info["SP"] == variable)]
         self.dataInfoCatOHE = pd.get_dummies(info[info["SP"] == variable]["category"])
         self.dataInfoCatHeaders = np.array([i for i in self.dataInfoCatOHE.columns.values])
         self.dataInfoCat = torch.from_numpy(self.dataInfoCatOHE[mask].values).float()
         self.dataTrain = [torch.tensor(dataTrain[i], dtype=torch.float32) for i in range(len(dataTrain))]  # ALREADY MASKED IN CHOP FUNCTION
         self.dataVal = [torch.tensor(dataVal[i], dtype=torch.float32) for i in range(len(dataVal)) if mask[i]]
         self.dataTest = [torch.tensor(dataTest[i], dtype=torch.float32) for i in range(len(dataTest)) if mask[i]]
+        self.ts_labels = dict([reversed(i) for i in ts_labels.items()])
         self.device = device
 
     def __len__(self):
@@ -71,6 +76,7 @@ class SeriesDataset(Dataset):
                self.dataVal[idx].to(self.device), \
                self.dataTest[idx].to(self.device), \
                self.dataInfoCat[idx].to(self.device), \
+               self.ts_labels[idx], \
                idx
 
 

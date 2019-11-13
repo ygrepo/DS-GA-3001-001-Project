@@ -14,7 +14,7 @@ def read_file(file_location, sampling=False, sample_size=5):
         row = data[i].replace('"', '').split(',')
         ts_values = np.array([float(j) for j in row[1:] if j != ""])
         series.append(ts_values)
-        ids[row[0]] = i - 1
+        ids[row[0]] = i -1
         if sampling and i == sample_size:
             series = np.asarray(series)
             return series, ids
@@ -67,18 +67,19 @@ def determine_chop_value(data, backcast_length, forecast_length):
 
 class SeriesDataset(Dataset):
 
-    def __init__(self, info, variable, sample, data_train, train_idx, data_val, data_test, backcast_length,
+    def __init__(self, info, variable, sample, data_train, ts_labels, data_val, data_test, backcast_length,
                  foreccast_length, device):
         chop_val = determine_chop_value(data_train, backcast_length, foreccast_length)
         data_train, mask = chop_series(data_train, chop_val)
         if sample:
-            info = info[(info["M4id"].isin(train_idx.keys())) & (info["SP"] == variable)]
+            info = info[(info["M4id"].isin(ts_labels.keys())) & (info["SP"] == variable)]
         self.dataInfoCatOHE = pd.get_dummies(info[info["SP"] == variable]["category"])
         self.dataInfoCatHeaders = np.array([i for i in self.dataInfoCatOHE.columns.values])
         self.dataInfoCat = torch.from_numpy(self.dataInfoCatOHE[mask].values).float()
         self.dataTrain = [torch.tensor(data_train[i], dtype=torch.float32) for i in range(len(data_train))]
         self.dataVal = [torch.tensor(data_val[i], dtype=torch.float32) for i in range(len(data_val)) if mask[i]]
         self.dataTest = [torch.tensor(data_test[i], dtype=torch.float32) for i in range(len(data_test)) if mask[i]]
+        self.ts_labels = dict([reversed(i) for i in ts_labels.items()])
 
         self.device = device
 
@@ -90,6 +91,7 @@ class SeriesDataset(Dataset):
                self.dataVal[idx].to(self.device), \
                self.dataTest[idx].to(self.device), \
                self.dataInfoCat[idx].to(self.device), \
+                self.ts_labels[idx], \
                idx
 
 

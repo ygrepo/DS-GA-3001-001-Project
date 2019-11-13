@@ -37,7 +37,7 @@ class ESRNNTrainer(BaseTrainer):
             info_cats = []
 
             hold_out_loss = 0
-            for batch_num, (train, val, test, info_cat, idx) in enumerate(self.data_loader):
+            for batch_num, (train, val, test, info_cat, _, idx) in enumerate(self.data_loader):
                 _, _, (hold_out_pred, network_output_non_train), \
                 (hold_out_act, hold_out_act_deseas_norm), _ = self.model(train, val, test, info_cat, idx, testing=True)
                 # Compute loss between normalized and deseasonalized predictions and
@@ -75,7 +75,7 @@ class ESRNNTrainer(BaseTrainer):
     def plot(self, testing=False):
         self.model.eval()
         with torch.no_grad():
-            (train, val, test, info_cat, idx) = next(iter(self.data_loader))
+            (train, val, test, info_cat, ts_labels, idx) = next(iter(self.data_loader))
             info_cats = info_cat.cpu().detach().numpy()
             cats = [val for val in self.ohe_headers[info_cats.argmax(axis=1)]]
 
@@ -84,4 +84,4 @@ class ESRNNTrainer(BaseTrainer):
             _, _, (hold_out_pred, _), (hold_out_act, _),_ = self.model(train, val, test, info_cat, idx, testing=testing)
             original_ts = torch.cat((train, hold_out_act), axis=1)
             predicted_ts = torch.cat((train, hold_out_pred), axis=1)
-            plot_ts(original_ts, predicted_ts, cats, self.figure_path, number_to_plot=train.shape[0])
+            plot_ts(original_ts, predicted_ts, ts_labels, cats, self.figure_path, number_to_plot=train.shape[0])

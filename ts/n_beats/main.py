@@ -14,7 +14,7 @@ from ts.utils.helper_funcs import set_seed
 def main():
 
     set_seed(0)
-    
+
     model_name = "nbeats"
     print("Starting training " + model_name)
 
@@ -23,7 +23,7 @@ def main():
     FIGURE_PATH = Path("figures/nbeats")
 
     print("Loading config")
-    config = get_config("Daily")
+    config = get_config("Monthly")
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
 
@@ -33,12 +33,12 @@ def main():
     test_path = str(BASE_DIR / "test/%s-test.csv") % (config["variable"])
 
     sample = True
-    train, train_idx, val, test, test_idx = create_datasets(train_path, test_path, config["output_size"],
+    train, ts_labels, val, test, test_idx = create_datasets(train_path, test_path, config["output_size"],
                                                             sample=sample, sampling_size=4)
     print("#of train ts:{}, dimensions of validation ts:{}, dimensions of test ts:{}".format(train.shape, val.shape,
                                                                                              test.shape))
 
-    dataset = SeriesDataset(info, config["variable"], sample, train, train_idx, val, test, backcast_length,
+    dataset = SeriesDataset(info, config["variable"], sample, train, ts_labels, val, test, backcast_length,
                             forecast_length,
                             config["device"])
     # dataloader = DataLoader(dataset, batch_size=config["batch_size"], collate_fn=collate_lines, shuffle=True)
@@ -52,7 +52,7 @@ def main():
                       share_weights_in_stack=config["share_weights_in_stack"],
                       device=config["device"])
     run_id = str(int(time.time()))
-    reload = False
+    reload = True
     trainer = Trainer(model_name, model, dataloader, run_id, config, forecast_length, backcast_length,
                       ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
                       sampling=sample, reload=reload)

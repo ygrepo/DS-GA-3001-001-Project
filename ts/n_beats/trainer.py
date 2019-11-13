@@ -47,7 +47,7 @@ class Trainer(BaseTrainer):
             preds = []
             info_cats = []
             hold_out_loss = 0
-            for batch_num, (train, val, test, info_cat, idx) in enumerate(self.data_loader):
+            for batch_num, (train, val, test, info_cat, _, idx) in enumerate(self.data_loader):
                 target = test if testing else val
                 if testing:
                     train = torch.cat((train, val), dim=1)
@@ -87,7 +87,7 @@ class Trainer(BaseTrainer):
     def plot(self, testing=False):
         self.model.eval()
         with torch.no_grad():
-            (train, val, test, info_cat, idx) = next(iter(self.data_loader))
+            (train, val, test, info_cat, ts_labels, idx) = next(iter(self.data_loader))
             target = test if testing else val
             info_cats = info_cat.cpu().detach().numpy()
             cats = [val for val in self.ohe_headers[info_cats.argmax(axis=1)]]
@@ -99,7 +99,7 @@ class Trainer(BaseTrainer):
             backcast, forecast = self.model(input)
             original_ts = torch.cat((train, target), axis=1)
             predicted_ts = torch.cat((train, forecast.squeeze()), axis=1)
-            plot_ts(original_ts, predicted_ts, cats, self.figure_path, number_to_plot=train.shape[0])
+            plot_ts(original_ts, predicted_ts, ts_labels, cats, self.figure_path, number_to_plot=train.shape[0])
 
 
 def plot(net, x, target, backcast_length, forecast_length, grad_step):

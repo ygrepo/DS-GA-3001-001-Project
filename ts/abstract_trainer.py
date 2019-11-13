@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.nn import SmoothL1Loss, MSELoss
 
 from ts.utils.helper_funcs import load, save
 from ts.utils.logger import Logger
@@ -27,6 +28,7 @@ class BaseTrainer(nn.Module):
                                                          gamma=config["lr_anneal_rate"])
         self.criterion = PinballLoss(self.config["training_tau"],
                                      self.config["output_size"] * self.config["batch_size"], self.config["device"])
+        #self.criterion = SmoothL1Loss()
         self.epochs = 0
         self.max_epochs = config["num_of_train_epochs"]
         if sampling:
@@ -70,7 +72,7 @@ class BaseTrainer(nn.Module):
     def train(self):
         self.model.train()
         epoch_loss = 0
-        for batch_num, (train, val, test, info_cat, idx) in enumerate(self.data_loader):
+        for batch_num, (train, val, test, info_cat, _, idx) in enumerate(self.data_loader):
             start = time.time()
             print("Train_batch: %d" % (batch_num + 1))
             loss = self.train_batch(train, val, test, info_cat, idx)

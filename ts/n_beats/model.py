@@ -38,6 +38,7 @@ class Block(nn.Module):
         self.forecast_length = forecast_length
         self.share_thetas = share_thetas
         self.fc1 = nn.Linear(backcast_length, units)
+        #self.fc1_bn = nn.BatchNorm1d(fc1_bn_size)
         self.fc2 = nn.Linear(units, units)
         self.fc3 = nn.Linear(units, units)
         self.fc4 = nn.Linear(units, units)
