@@ -52,7 +52,7 @@ def main():
                       share_weights_in_stack=config["share_weights_in_stack"],
                       device=config["device"])
     run_id = str(int(time.time()))
-    reload = True
+    reload =False
     trainer = Trainer(model_name, model, dataloader, run_id, config, forecast_length, backcast_length,
                       ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
                       sampling=sample, reload=reload)

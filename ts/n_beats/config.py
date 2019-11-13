@@ -13,7 +13,7 @@ def get_config(interval):
         "training_percentile": 45,
         "learning_rate": 1e-3,
         "learning_rates": ((10, 1e-4)),
-        "num_of_train_epochs": 15,
+        "num_of_train_epochs": 200,
         "num_of_train_epochs_sampling": 15,
         "num_of_categories": 6,  # in data provided
         "batch_size": 1024,
@@ -43,7 +43,7 @@ def get_config(interval):
         config.update({
             #     RUNTIME PARAMETERS
             "stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
-            "thetas_dims": [7, 8],
+            "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
             "share_weights_in_stack": True,

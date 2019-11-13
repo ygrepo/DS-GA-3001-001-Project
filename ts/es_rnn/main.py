@@ -35,7 +35,7 @@ info = pd.read_csv(str(BASE_DIR / "M4info.csv"))
 train_path = str(BASE_DIR / "train/%s-train.csv") % (config["variable"])
 test_path = str(BASE_DIR / "test/%s-test.csv") % (config["variable"])
 
-sample = True
+sample = False
 train, ts_labels, val, test, test_idx = create_datasets(train_path, test_path, config["output_size"], sample=sample)
 print("#of train ts:{}, dimensions of validation ts:{}, dimensions of test ts:{}".format(train.shape, val.shape,
                                                                                          test.shape))
