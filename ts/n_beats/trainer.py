@@ -5,18 +5,17 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-from torch import optim
 
 from ts.abstract_trainer import BaseTrainer
-from ts.n_beats.model import NBeatsNet
 from ts.utils.loss_modules import np_sMAPE
+from ts.utils.helper_funcs import plot_ts
 
 
 class Trainer(BaseTrainer):
     def __init__(self, model_name, model, dataloader, run_id, config, forecast_length, backcast_length, ohe_headers,
-                 csv_path, reload):
+                 csv_path, figure_path, sampling, reload):
         super().__init__(model_name, model, dataloader, run_id, config, ohe_headers,
-                         csv_path, reload)
+                         csv_path, figure_path, sampling, reload)
         self.forecast_length = forecast_length
         self.backcast_length = backcast_length
 
@@ -26,9 +25,9 @@ class Trainer(BaseTrainer):
         window_input_list = []
         window_output_list = []
         ts_len = train.shape[1]
-        for j in range(self.backcast_length, ts_len - self.forecast_length):
-            window_input_list.append(train[:, j - self.backcast_length:j])
-            window_output_list.append(train[:, j:j + self.forecast_length])
+        for i in range(self.backcast_length, ts_len - self.forecast_length):
+            window_input_list.append(train[:, i - self.backcast_length:i])
+            window_output_list.append(train[:, i:i + self.forecast_length])
 
         window_input = torch.cat([i.unsqueeze(0) for i in window_input_list], dim=0)
         window_output = torch.cat([i.unsqueeze(0) for i in window_output_list], dim=0)
@@ -66,12 +65,11 @@ class Trainer(BaseTrainer):
             _hold_out_df = pd.DataFrame({"acts": acts, "preds": preds})
             cats = [val for val in self.ohe_headers[info_cat_overall.argmax(axis=1)] for _ in
                     range(self.config["output_size"])]
-            _hold_out_df["category"] = cats
 
             overall_hold_out_df = copy.copy(_hold_out_df)
             overall_hold_out_df["category"] = ["Overall" for _ in cats]
 
-            overall_hold_out_df = pd.concat((_hold_out_df, overall_hold_out_df))
+            overall_hold_out_df = pd.concat((_hold_out_df, overall_hold_out_df), sort=False)
             grouped_results = overall_hold_out_df.groupby(["category"]).apply(
                 lambda x: np_sMAPE(x.preds, x.acts, x.shape[0]))
 
@@ -86,62 +84,22 @@ class Trainer(BaseTrainer):
 
         return hold_out_loss.detach().cpu().item()
 
+    def plot(self, testing=False):
+        self.model.eval()
+        with torch.no_grad():
+            (train, val, test, info_cat, idx) = next(iter(self.data_loader))
+            target = test if testing else val
+            info_cats = info_cat.cpu().detach().numpy()
+            cats = [val for val in self.ohe_headers[info_cats.argmax(axis=1)]]
 
-def train():
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    forecast_length = 10
-    backcast_length = 5 * forecast_length
-    batch_size = 100  # greater than 4 for viz
-
-    print("--- Model ---")
-    net = NBeatsNet(device=device,
-                    stack_types=[NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
-                    forecast_length=forecast_length,
-                    thetas_dims=[2, 8],
-                    nb_blocks_per_stack=3,
-                    backcast_length=backcast_length,
-                    hidden_layer_units=1024,
-                    share_weights_in_stack=False)
-
-    # net = NBeatsNet(device=device,
-    #                 stack_types=[NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
-    #                 forecast_length=forecast_length,
-    #                 thetas_dims=[7, 8],
-    #                 nb_blocks_per_stack=3,
-    #                 backcast_length=backcast_length,
-    #                 hidden_layer_units=128,
-    #                 share_weights_in_stack=False)
-
-    optimiser = optim.Adam(net.parameters())
-
-    # def plot_model(x, target, grad_step):
-    #    if not args.disable_plot:
-    #        print("plot()")
-    #        plot(net, x, target, backcast_length, forecast_length, grad_step)
-
-    # simple_fit(net, optimiser, data_gen, plot_model, device)
-
-
-# def simple_fit(net, optimiser, data_generator, on_save_callback, device, max_grad_steps=10000):
-#     print("--- Training ---")
-#     initial_grad_step = load(net, optimiser)
-#     for grad_step, (x, target) in enumerate(data_generator):
-#         grad_step += initial_grad_step
-#         optimiser.zero_grad()
-#         net.train()
-#         backcast, forecast = net(torch.tensor(x, dtype=torch.float).to(device))
-#         loss = F.mse_loss(forecast, torch.tensor(target, dtype=torch.float).to(device))
-#         loss.backward()
-#         optimiser.step()
-#         print(f"grad_step = {str(grad_step).zfill(6)}, loss = {loss.item():.6f}")
-#         if grad_step % 1000 == 0 or (grad_step < 1000 and grad_step % 100 == 0):
-#             with torch.no_grad():
-#                 save(net, optimiser, grad_step)
-#                 if on_save_callback is not None:
-#                     on_save_callback(x, target, grad_step)
-#         if grad_step > max_grad_steps:
-#             print("Finished.")
-#             break
+            if testing:
+                train = torch.cat((train, val), dim=1)
+            ts_len = train.shape[1]
+            input = train[:, ts_len - self.backcast_length:ts_len][np.newaxis, ...]
+            backcast, forecast = self.model(input)
+            original_ts = torch.cat((train, target), axis=1)
+            predicted_ts = torch.cat((train, forecast.squeeze()), axis=1)
+            plot_ts(original_ts, predicted_ts, cats, self.figure_path, number_to_plot=train.shape[0])
 
 
 def plot(net, x, target, backcast_length, forecast_length, grad_step):
@@ -163,7 +121,3 @@ def plot(net, x, target, backcast_length, forecast_length, grad_step):
     plt.savefig(output)
     plt.clf()
     print("Saved image to {}.".format(output))
-
-
-if __name__ == "__main__":
-    train()

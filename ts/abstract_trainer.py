@@ -11,12 +11,14 @@ from ts.utils.loss_modules import PinballLoss
 
 
 class BaseTrainer(nn.Module):
-    def __init__(self, model_name, model, dataloader, run_id, config, ohe_headers, csv_path, reload):
+    def __init__(self, model_name, model, dataloader, run_id, config, ohe_headers, csv_path, figure_path,
+                 sampling=False, reload=False):
         super(BaseTrainer, self).__init__()
         self.model_name = model_name
         self.model = model.to(config["device"])
         self.config = config
         self.data_loader = dataloader
+        self.sampling = sampling
         self.ohe_headers = ohe_headers
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=config["learning_rate"])
         # self.optimizer = torch.optim.ASGD(self.model.parameters(), lr=config["learning_rate"])
@@ -30,8 +32,9 @@ class BaseTrainer(nn.Module):
         self.run_id = str(run_id)
         self.prod_str = "prod" if config["prod"] else "dev"
         self.csv_save_path = csv_path
+        self.figure_path = figure_path
         logger_path = str(csv_path / ("tensorboard/" + self.model_name) / (
-                        "train%s%s%s" % (self.config["variable"], self.prod_str, self.run_id)))
+                "train%s%s%s" % (self.config["variable"], self.prod_str, self.run_id)))
         self.log = Logger(logger_path)
         self.reload = reload
 
@@ -58,6 +61,8 @@ class BaseTrainer(nn.Module):
             with open(file_path_validation_loss, "a") as f:
                 f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
             self.epochs += 1
+        if self.sampling:
+            self.plot(testing=True)
         print("Total Training Mins: %5.2f" % ((time.time() - start_time) / 60))
 
     def train(self):
@@ -87,6 +92,9 @@ class BaseTrainer(nn.Module):
 
     def val(self, file_path, testing):
         return 0
+
+    def plot(self, filepath=None, testing=True):
+        pass
 
     def log_values(self, info):
 

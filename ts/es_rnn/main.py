@@ -19,6 +19,8 @@ except KeyError:
 
 BASE_DIR = Path("data/raw/")
 LOG_DIR = Path("logs/esrnn")
+FIGURE_PATH = Path("figures/esrnn")
+
 print("loading config")
 # config = get_config("Quarterly")
 config = get_config("Monthly")
@@ -43,5 +45,5 @@ run_id = str(int(time.time()))
 model = ESRNN(num_series=len(dataset), config=config)
 reload = True
 tr = ESRNNTrainer("esrnn", model, dataloader, run_id, config, ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR,
-                  reload=reload)
+                  figure_path=FIGURE_PATH, sampling=sample, reload=reload)
 tr.train_epochs()

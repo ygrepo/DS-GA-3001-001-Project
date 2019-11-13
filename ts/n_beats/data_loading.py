@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
+from pathlib2 import Path
+
+from ts.utils.helper_funcs import plot_ts_2
+
 
 
 def get_data(num_samples, backcast_length, forecast_length, signal_type="seasonality", random=False):
@@ -84,6 +88,8 @@ def create_val_set(train, output_size):
 
 def create_datasets(train_file_location, test_file_location, output_size, sample=False, sampling_size=5):
     train, train_idx = read_file(train_file_location, sample, sampling_size)
+    # FIGURE_PATH = Path("figures/nbeats")
+    # plot_ts_2(train, train_idx, FIGURE_PATH, train.shape[0])
     test, test_idx = read_file(test_file_location, sample, sampling_size)
     train, val = create_val_set(train, output_size)
     if sample:

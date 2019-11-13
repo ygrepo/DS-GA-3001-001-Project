@@ -125,6 +125,8 @@ def main():
 
     BASE_DIR = Path("data/raw/")
     LOG_DIR = Path("logs/nbeats")
+    FIGURE_PATH = Path("figures/nbeats")
+
     print("Loading config")
     config = get_config("Quarterly")
     forecast_length = config["output_size"]
@@ -155,9 +157,10 @@ def main():
                       share_weights_in_stack=config["share_weights_in_stack"],
                       device=config["device"])
     run_id = str(int(time.time()))
-    reload = False
+    reload = True
     trainer = Trainer("nbeats", model, dataloader, run_id, config, forecast_length, backcast_length,
-                      ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, reload=reload)
+                      ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
+                      sampling=sample, reload=reload)
     trainer.train_epochs()
 
 
