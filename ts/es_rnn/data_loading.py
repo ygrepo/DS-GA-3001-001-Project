@@ -43,6 +43,9 @@ def create_datasets(train_file_location, test_file_location, output_size, sample
     train, train_idx = read_file(train_file_location, sample, sampling_size)
     test, test_idx = read_file(test_file_location, sample, sampling_size)
     train, val = create_val_set(train, output_size)
+    if sample:
+        print("Sampling train data for {}".format(train_idx.keys()))
+        print("Sampling test data for {}".format(test_idx.keys()))
     return train, train_idx, val, test, test_idx
 
 
@@ -55,9 +58,9 @@ class SeriesDataset(Dataset):
         self.dataInfoCatOHE = pd.get_dummies(info[info["SP"] == variable]["category"])
         self.dataInfoCatHeaders = np.array([i for i in self.dataInfoCatOHE.columns.values])
         self.dataInfoCat = torch.from_numpy(self.dataInfoCatOHE[mask].values).float()
-        self.dataTrain = [torch.tensor(dataTrain[i]) for i in range(len(dataTrain))]  # ALREADY MASKED IN CHOP FUNCTION
-        self.dataVal = [torch.tensor(dataVal[i]) for i in range(len(dataVal)) if mask[i]]
-        self.dataTest = [torch.tensor(dataTest[i]) for i in range(len(dataTest)) if mask[i]]
+        self.dataTrain = [torch.tensor(dataTrain[i], dtype=torch.float32) for i in range(len(dataTrain))]  # ALREADY MASKED IN CHOP FUNCTION
+        self.dataVal = [torch.tensor(dataVal[i], dtype=torch.float32) for i in range(len(dataVal)) if mask[i]]
+        self.dataTest = [torch.tensor(dataTest[i], dtype=torch.float32) for i in range(len(dataTest)) if mask[i]]
         self.device = device
 
     def __len__(self):

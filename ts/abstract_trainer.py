@@ -63,7 +63,7 @@ class BaseTrainer(nn.Module):
             self.epochs += 1
         if self.sampling:
             self.plot(testing=True)
-        print("Total Training Mins: %5.2f" % ((time.time() - start_time) / 60))
+        print("Total Training in mins: %5.2f" % ((time.time() - start_time) / 60))
 
     def train(self):
         self.model.train()
@@ -78,8 +78,7 @@ class BaseTrainer(nn.Module):
         epoch_loss = epoch_loss / (batch_num + 1)
 
         # LOG EPOCH LEVEL INFORMATION
-        print("[TRAIN]  Epoch [%d/%d]   Loss: %.4f" % (
-            self.epochs, self.max_epochs, epoch_loss))
+        print("[TRAIN]  Epoch [%d/%d]   Loss: %.4f" % (self.epochs, self.max_epochs, epoch_loss))
         info = {"loss": epoch_loss}
 
         self.log_values(info)

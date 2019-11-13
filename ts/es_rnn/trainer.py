@@ -7,6 +7,7 @@ import torch.nn as nn
 
 from ts.abstract_trainer import BaseTrainer
 from ts.utils.loss_modules import np_sMAPE
+from ts.utils.helper_funcs import plot_ts
 
 
 class ESRNNTrainer(BaseTrainer):
@@ -70,3 +71,17 @@ class ESRNNTrainer(BaseTrainer):
             grouped_results.to_csv(grouped_path, header=True)
 
         return hold_out_loss.detach().cpu().item()
+
+    def plot(self, testing=False):
+        self.model.eval()
+        with torch.no_grad():
+            (train, val, test, info_cat, idx) = next(iter(self.data_loader))
+            info_cats = info_cat.cpu().detach().numpy()
+            cats = [val for val in self.ohe_headers[info_cats.argmax(axis=1)]]
+
+            if testing:
+                train = torch.cat((train, val), dim=1)
+            _, _, (hold_out_pred, _), (hold_out_act, _),_ = self.model(train, val, test, info_cat, idx, testing=testing)
+            original_ts = torch.cat((train, hold_out_act), axis=1)
+            predicted_ts = torch.cat((train, hold_out_pred), axis=1)
+            plot_ts(original_ts, predicted_ts, cats, self.figure_path, number_to_plot=train.shape[0])

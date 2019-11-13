@@ -2,60 +2,6 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
-from pathlib2 import Path
-
-from ts.utils.helper_funcs import plot_ts_2
-
-
-
-def get_data(num_samples, backcast_length, forecast_length, signal_type="seasonality", random=False):
-    def get_x_y():
-        lin_space = np.linspace(-backcast_length, forecast_length, backcast_length + forecast_length)
-        if random:
-            offset = np.random.standard_normal() * 0.1
-        else:
-            offset = 1
-        if signal_type == "trend":
-            x = lin_space + offset
-        elif signal_type == "seasonality":
-            x = np.cos(2 * np.random.randint(low=1, high=3) * np.pi * lin_space)
-            x += np.cos(2 * np.random.randint(low=2, high=4) * np.pi * lin_space)
-            x += lin_space * offset + np.random.rand() * 0.1
-        elif signal_type == "cos":
-            x = np.cos(2 * np.pi * lin_space)
-        else:
-            raise Exception("Unknown signal type.")
-        x -= np.minimum(np.min(x), 0)
-        x /= np.max(np.abs(x))
-        x = np.expand_dims(x, axis=0)
-        y = x[:, backcast_length:]
-        x = x[:, :backcast_length]
-        return x[0], y[0]
-
-    while True:
-        X = []
-        Y = []
-        for i in range(num_samples):
-            x, y = get_x_y()
-            X.append(x)
-            Y.append(y)
-        yield np.array(X), np.array(Y)
-
-
-# simple batcher.
-def data_generator(x_full, y_full, bs):
-    def split(arr, size):
-        arrays = []
-        while len(arr) > size:
-            slice_ = arr[:size]
-            arrays.append(slice_)
-            arr = arr[size:]
-        arrays.append(arr)
-        return arrays
-
-    while True:
-        for rr in split((x_full, y_full), bs):
-            yield rr
 
 
 def read_file(file_location, sampling=False, sample_size=5):
@@ -88,8 +34,6 @@ def create_val_set(train, output_size):
 
 def create_datasets(train_file_location, test_file_location, output_size, sample=False, sampling_size=5):
     train, train_idx = read_file(train_file_location, sample, sampling_size)
-    # FIGURE_PATH = Path("figures/nbeats")
-    # plot_ts_2(train, train_idx, FIGURE_PATH, train.shape[0])
     test, test_idx = read_file(test_file_location, sample, sampling_size)
     train, val = create_val_set(train, output_size)
     if sample:
@@ -132,9 +76,9 @@ class SeriesDataset(Dataset):
         self.dataInfoCatOHE = pd.get_dummies(info[info["SP"] == variable]["category"])
         self.dataInfoCatHeaders = np.array([i for i in self.dataInfoCatOHE.columns.values])
         self.dataInfoCat = torch.from_numpy(self.dataInfoCatOHE[mask].values).float()
-        self.dataTrain = [torch.tensor(data_train[i], dtype=torch.float) for i in range(len(data_train))]
-        self.dataVal = [torch.tensor(data_val[i], dtype=torch.float) for i in range(len(data_val)) if mask[i]]
-        self.dataTest = [torch.tensor(data_test[i], dtype=torch.float) for i in range(len(data_test)) if mask[i]]
+        self.dataTrain = [torch.tensor(data_train[i], dtype=torch.float32) for i in range(len(data_train))]
+        self.dataVal = [torch.tensor(data_val[i], dtype=torch.float32) for i in range(len(data_val)) if mask[i]]
+        self.dataTest = [torch.tensor(data_test[i], dtype=torch.float32) for i in range(len(data_test)) if mask[i]]
 
         self.device = device
 
