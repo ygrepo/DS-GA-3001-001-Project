@@ -10,7 +10,9 @@ from ts.es_rnn.data_loading import create_datasets, SeriesDataset
 from ts.es_rnn.model import ESRNN
 from ts.es_rnn.trainer import ESRNNTrainer
 
-print("Start")
+
+model_name = "esrnn"
+print("Starting training " + model_name)
 try:
     user_paths = os.environ["PYTHONPATH"].split(os.pathsep)
     print(user_paths)
@@ -23,7 +25,7 @@ FIGURE_PATH = Path("figures/esrnn")
 
 print("loading config")
 # config = get_config("Quarterly")
-config = get_config("Monthly")
+config = get_config("Daily")
 
 print("loading data")
 info = pd.read_csv(str(BASE_DIR / "M4info.csv"))
@@ -43,7 +45,7 @@ dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
 
 run_id = str(int(time.time()))
 model = ESRNN(num_series=len(dataset), config=config)
-reload = True
-tr = ESRNNTrainer("esrnn", model, dataloader, run_id, config, ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR,
+reload = False
+tr = ESRNNTrainer(model_name, model, dataloader, run_id, config, ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR,
                   figure_path=FIGURE_PATH, sampling=sample, reload=reload)
 tr.train_epochs()

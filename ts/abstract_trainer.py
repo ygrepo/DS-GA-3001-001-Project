@@ -29,6 +29,8 @@ class BaseTrainer(nn.Module):
                                      self.config["output_size"] * self.config["batch_size"], self.config["device"])
         self.epochs = 0
         self.max_epochs = config["num_of_train_epochs"]
+        if sampling:
+           self.max_epochs = config["num_of_train_epochs_sampling"]
         self.run_id = str(run_id)
         self.prod_str = "prod" if config["prod"] else "dev"
         self.csv_save_path = csv_path
