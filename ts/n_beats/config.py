@@ -43,7 +43,8 @@ def get_config(interval):
         config.update({
             #     RUNTIME PARAMETERS
             "stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
-            "thetas_dims": [2, 8],
+            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
+            "thetas_dims": [2, 4, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
             "share_weights_in_stack": True,

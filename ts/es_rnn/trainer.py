@@ -84,4 +84,5 @@ class ESRNNTrainer(BaseTrainer):
             _, _, (hold_out_pred, _), (hold_out_act, _),_ = self.model(train, val, test, info_cat, idx, testing=testing)
             original_ts = torch.cat((train, hold_out_act), axis=1)
             predicted_ts = torch.cat((train, hold_out_pred), axis=1)
-            plot_ts(original_ts, predicted_ts, ts_labels, cats, self.figure_path, number_to_plot=train.shape[0])
+            plot_ts(self.run_id, original_ts, predicted_ts, ts_labels, cats, self.figure_path,
+                    number_to_plot=train.shape[0], show=False)

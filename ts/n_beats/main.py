@@ -15,8 +15,9 @@ def main():
 
     set_seed(0)
 
+    run_id = str(int(time.time()))
     model_name = "nbeats"
-    print("Starting training " + model_name)
+    print("Starting run={}, model={} ".format(run_id, model_name))
 
     BASE_DIR = Path("data/raw/")
     LOG_DIR = Path("logs/nbeats")
@@ -51,7 +52,6 @@ def main():
                       hidden_layer_units=config["hidden_layer_units"],
                       share_weights_in_stack=config["share_weights_in_stack"],
                       device=config["device"])
-    run_id = str(int(time.time()))
     reload =False
     trainer = Trainer(model_name, model, dataloader, run_id, config, forecast_length, backcast_length,
                       ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, figure_path=FIGURE_PATH,

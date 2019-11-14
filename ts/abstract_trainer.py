@@ -53,7 +53,7 @@ class BaseTrainer(nn.Module):
             if epoch_loss < max_loss:
                 print("Loss decreased, saving model!")
                 file_path = Path(".") / ("models/" + self.model_name)
-                save(file_path, self.model, self.optimizer)
+                save(file_path, self.model, self.optimizer, self.run_id)
                 max_loss = epoch_loss
             file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
             file_path_validation_loss = file_path / "validation_losses.csv"

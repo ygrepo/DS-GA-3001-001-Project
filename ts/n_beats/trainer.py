@@ -99,25 +99,4 @@ class Trainer(BaseTrainer):
             backcast, forecast = self.model(input)
             original_ts = torch.cat((train, target), axis=1)
             predicted_ts = torch.cat((train, forecast.squeeze()), axis=1)
-            plot_ts(original_ts, predicted_ts, ts_labels, cats, self.figure_path, number_to_plot=train.shape[0])
-
-
-def plot(net, x, target, backcast_length, forecast_length, grad_step):
-    net.eval()
-    _, f = net(torch.tensor(x, dtype=torch.float))
-    subplots = [221, 222, 223, 224]
-
-    plt.figure(1)
-    plt.subplots_adjust(top=0.88)
-    for i in range(4):
-        ff, xx, yy = f.cpu().numpy()[i], x[i], target[i]
-        plt.subplot(subplots[i])
-        plt.plot(range(0, backcast_length), xx, color="b")
-        plt.plot(range(backcast_length, backcast_length + forecast_length), yy, color="g")
-        plt.plot(range(backcast_length, backcast_length + forecast_length), ff, color="r")
-        # plt.title(f"step #{grad_step} ({i})")
-
-    output = "n_beats_{}.png".format(grad_step)
-    plt.savefig(output)
-    plt.clf()
-    print("Saved image to {}.".format(output))
+            plot_ts(self.run_id, original_ts, predicted_ts, ts_labels, cats, self.figure_path, number_to_plot=train.shape[0])
