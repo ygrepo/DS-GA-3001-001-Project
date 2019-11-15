@@ -12,7 +12,7 @@ from ts.utils.loss_modules import PinballLoss
 
 
 class BaseTrainer(nn.Module):
-    def __init__(self, model_name, model, dataloader, run_id, config, ohe_headers, csv_path, figure_path,
+    def __init__(self, model_name, model, dataloader, run_id, add_run_id, config, ohe_headers, csv_path, figure_path,
                  sampling=False, reload=False):
         super(BaseTrainer, self).__init__()
         self.model_name = model_name
@@ -34,6 +34,7 @@ class BaseTrainer(nn.Module):
         if sampling:
            self.max_epochs = config["num_of_train_epochs_sampling"]
         self.run_id = str(run_id)
+        self.add_run_id = add_run_id
         self.prod_str = "prod" if config["prod"] else "dev"
         self.csv_save_path = csv_path
         self.figure_path = figure_path
@@ -53,7 +54,7 @@ class BaseTrainer(nn.Module):
             if epoch_loss < max_loss:
                 print("Loss decreased, saving model!")
                 file_path = Path(".") / ("models/" + self.model_name)
-                save(file_path, self.model, self.optimizer, self.run_id)
+                save(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
                 max_loss = epoch_loss
             file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
             file_path_validation_loss = file_path / "validation_losses.csv"

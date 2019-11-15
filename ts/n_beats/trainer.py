@@ -12,9 +12,9 @@ from ts.utils.helper_funcs import plot_ts
 
 
 class Trainer(BaseTrainer):
-    def __init__(self, model_name, model, dataloader, run_id, config, forecast_length, backcast_length, ohe_headers,
+    def __init__(self, model_name, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length, ohe_headers,
                  csv_path, figure_path, sampling, reload):
-        super().__init__(model_name, model, dataloader, run_id, config, ohe_headers,
+        super().__init__(model_name, model, dataloader, run_id, add_run_id, config, ohe_headers,
                          csv_path, figure_path, sampling, reload)
         self.forecast_length = forecast_length
         self.backcast_length = backcast_length

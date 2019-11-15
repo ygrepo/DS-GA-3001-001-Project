@@ -52,8 +52,9 @@ def main():
                       hidden_layer_units=config["hidden_layer_units"],
                       share_weights_in_stack=config["share_weights_in_stack"],
                       device=config["device"])
-    reload =False
-    trainer = Trainer(model_name, model, dataloader, run_id, config, forecast_length, backcast_length,
+    reload = True
+    add_run_id = True
+    trainer = Trainer(model_name, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length,
                       ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
                       sampling=sample, reload=reload)
     trainer.train_epochs()

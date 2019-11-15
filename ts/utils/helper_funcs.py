@@ -29,9 +29,13 @@ def unpad_sequence(padded_sequence, lens):
     return seqs
 
 
-def save(file_path, model, optimiser, run_id):
+def save(file_path, model, optimiser, run_id, add_run_id=False):
     file_path.mkdir(parents=True, exist_ok=True)
-    model_path = file_path / ("model_" + run_id + ".pyt")
+    if add_run_id:
+        model_path = file_path / ("model_" + run_id + ".pyt")
+    else:
+        model_path = file_path / ("model.pyt")
+
     torch.save({
         "model_state_dict": model.state_dict(),
         "optimizer_state_dict": optimiser.state_dict(),
