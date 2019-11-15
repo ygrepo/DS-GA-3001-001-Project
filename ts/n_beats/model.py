@@ -11,14 +11,14 @@ def seasonality_model(thetas, t, device):
     s1 = torch.tensor([np.cos(2 * np.pi * i * t) for i in range(p1)]).float()  # H/2-1
     s2 = torch.tensor([np.sin(2 * np.pi * i * t) for i in range(p2)]).float()
     S = torch.cat([s1, s2])
-    return thetas.mm(S.to(device))
+    return thetas.squeeze().mm(S.to(device))
 
 
 def trend_model(thetas, t, device):
     p = thetas.size()[-1]
     assert p <= 4, "thetas_dim is too big."
     T = torch.tensor([t ** i for i in range(p)]).float()
-    return thetas.mm(T.to(device))
+    return thetas.squeeze().mm(T.to(device))
 
 
 def linspace(backcast_length, forecast_length):
