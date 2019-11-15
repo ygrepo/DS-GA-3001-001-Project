@@ -33,7 +33,7 @@ def main():
     train_path = str(BASE_DIR / "train/%s-train.csv") % (config["variable"])
     test_path = str(BASE_DIR / "test/%s-test.csv") % (config["variable"])
 
-    sample = True
+    sample = config["sample"]
     train, ts_labels, val, test, test_idx = create_datasets(train_path, test_path, config["output_size"],
                                                             sample=sample, sampling_size=4)
     print("#of train ts:{}, dimensions of validation ts:{}, dimensions of test ts:{}".format(train.shape, val.shape,
@@ -52,8 +52,8 @@ def main():
                       hidden_layer_units=config["hidden_layer_units"],
                       share_weights_in_stack=config["share_weights_in_stack"],
                       device=config["device"])
-    reload = False
-    add_run_id = False
+    reload = config["reload"]
+    add_run_id = config["add_run_id"]
     trainer = Trainer(model_name, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length,
                       ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
                       sampling=sample, reload=reload)

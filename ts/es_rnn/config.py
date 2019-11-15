@@ -26,7 +26,10 @@ def get_config(interval):
         "print_train_batch_every": 5,
         "print_output_stats": 3,
         "lr_anneal_rate": 0.5,
-        "lr_anneal_step": 5
+        "lr_anneal_step": 5,
+        "sample": True,
+        "reload": True,
+        "add_run_id": True
     }
 
     if interval == "Quarterly":

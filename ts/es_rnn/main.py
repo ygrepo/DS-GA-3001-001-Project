@@ -38,7 +38,7 @@ info = pd.read_csv(str(BASE_DIR / "M4info.csv"))
 train_path = str(BASE_DIR / "train/%s-train.csv") % (config["variable"])
 test_path = str(BASE_DIR / "test/%s-test.csv") % (config["variable"])
 
-sample = True
+sample = config["sample"]
 train, ts_labels, val, test, test_idx = create_datasets(train_path, test_path, config["output_size"], sample=sample)
 print("#of train ts:{}, dimensions of validation ts:{}, dimensions of test ts:{}".format(train.shape, val.shape,
                                                                                          test.shape))
@@ -49,8 +49,8 @@ config["num_of_categories"] = len(dataset.dataInfoCatHeaders)
 dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
 
 model = ESRNN(num_series=len(dataset), config=config)
-reload = False
-add_run_id = False
+reload = config["reload"]
+add_run_id = config["add_run_id"]
 tr = ESRNNTrainer(model_name, model, dataloader, run_id, add_run_id, config, ohe_headers=dataset.dataInfoCatHeaders,
                   csv_path=LOG_DIR,
                   figure_path=FIGURE_PATH, sampling=sample, reload=reload)
