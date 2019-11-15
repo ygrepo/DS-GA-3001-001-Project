@@ -24,7 +24,7 @@ def main():
     FIGURE_PATH = Path("figures/nbeats")
 
     print("Loading config")
-    config = get_config("Monthly")
+    config = get_config("Quarterly")
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
 
@@ -52,8 +52,8 @@ def main():
                       hidden_layer_units=config["hidden_layer_units"],
                       share_weights_in_stack=config["share_weights_in_stack"],
                       device=config["device"])
-    reload = True
-    add_run_id = True
+    reload = False
+    add_run_id = False
     trainer = Trainer(model_name, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length,
                       ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
                       sampling=sample, reload=reload)

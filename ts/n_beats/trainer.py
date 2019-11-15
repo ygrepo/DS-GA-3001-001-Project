@@ -65,6 +65,7 @@ class Trainer(BaseTrainer):
             _hold_out_df = pd.DataFrame({"acts": acts, "preds": preds})
             cats = [val for val in self.ohe_headers[info_cat_overall.argmax(axis=1)] for _ in
                     range(self.config["output_size"])]
+            _hold_out_df["category"] = cats
 
             overall_hold_out_df = copy.copy(_hold_out_df)
             overall_hold_out_df["category"] = ["Overall" for _ in cats]

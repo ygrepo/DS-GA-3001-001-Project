@@ -14,7 +14,7 @@ def get_config(interval):
         "learning_rate": 1e-3,
         "learning_rates": ((10, 1e-4)),
         "num_of_train_epochs": 200,
-        "num_of_train_epochs_sampling": 15,
+        "num_of_train_epochs_sampling": 80,
         "num_of_categories": 6,  # in data provided
         "batch_size": 1024,
         "gradient_clipping": 20,
