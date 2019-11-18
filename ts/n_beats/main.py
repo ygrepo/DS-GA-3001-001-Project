@@ -5,10 +5,10 @@ import pandas as pd
 from torch.utils.data import DataLoader
 
 from ts.n_beats.config import get_config
-from ts.n_beats.data_loading import create_datasets, SeriesDataset
+from ts.n_beats.data_loading import SeriesDataset
 from ts.n_beats.model import NBeatsNet
 from ts.n_beats.trainer import Trainer
-from ts.utils.helper_funcs import set_seed
+from ts.utils.helper_funcs import set_seed, create_datasets
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
     FIGURE_PATH = Path("figures/nbeats")
 
     print("Loading config")
-    config = get_config("Hourly")
+    config = get_config("Quarterly")
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
 

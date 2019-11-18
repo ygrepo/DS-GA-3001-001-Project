@@ -59,7 +59,7 @@ def get_config(interval):
             "seasonality": 12,
             "output_size": 18,
             #"sample_ids": [],
-            "sample_ids": ["M19006"],
+            "sample_ids": ["M1"],
         })
     elif interval == "Daily":
         config.update({

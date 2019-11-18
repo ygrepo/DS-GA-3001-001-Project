@@ -51,6 +51,76 @@ def load(file_path, model, optimiser):
         print(f"Restored checkpoint from {model_path}.")
 
 
+def read_file(file_location, sample_ids, sampling=False, sample_size=5):
+    series = []
+    ids = dict()
+    with open(file_location, "r") as file:
+        data = file.read().split("\n")
+
+    for i in range(1, len(data) - 1):
+        row = data[i].replace('"', '').split(',')
+        ts_values = np.array([float(j) for j in row[1:] if j != ""])
+        series.append(ts_values)
+        ids[row[0]] = i - 1
+        if sampling and not sample_ids and i == sample_size:
+            series = np.asarray(series)
+            return series, ids
+
+    series = np.asarray(series)
+    return series, ids
+
+
+def filter_sample_ids(ts, ts_idx, sample_ids):
+    sampled_ts = []
+    ids = dict()
+    for i, id in enumerate(sample_ids):
+        if id not in ts_idx:
+            print("Could not find ts id:{}".format(id))
+            continue
+        sampled_ts.append(ts[ts_idx[id]].tolist())
+        ids[id] = i
+    return np.array(sampled_ts), ids
+
+
+def create_val_set(train, output_size):
+    val = []
+    new_train = []
+    for i in range(len(train)):
+        val.append(train[i][-output_size:])
+        new_train.append(train[i][:-output_size])
+    return np.array(new_train), np.array(val)
+
+
+def create_datasets(train_file_location, test_file_location, output_size, sample_ids, sample=False, sampling_size=5):
+    train, train_idx = read_file(train_file_location, sample_ids, sample, sampling_size)
+    if sample and sample_ids:
+        train, train_idx = filter_sample_ids(train, train_idx, sample_ids)
+    print("After chopping: train:{}".format(len(train)))
+
+    test, test_idx = read_file(test_file_location, sample_ids, sample, sampling_size)
+    if sample and sample_ids:
+        test, test_idx = filter_sample_ids(test, test_idx, sample_ids)
+
+    train, val = create_val_set(train, output_size)
+    if sample and sample_ids:
+        print("Sampling train data for {}".format(sample_ids))
+        print("Sampling test data for {}".format(sample_ids))
+
+    elif sample and not sample_ids:
+        print("Sampling train data for {}".format(train_idx.keys()))
+        print("Sampling test data for {}".format(test_idx.keys()))
+
+    return train, train_idx, val, test, test_idx
+
+
+def chop_series(train, chop_val):
+    # CREATE MASK FOR VALUES TO BE CHOPPED
+    train_len_mask = [True if len(i) >= chop_val else False for i in train]
+    # FILTER AND CHOP TRAIN
+    train = [train[i][-chop_val:] for i in range(len(train)) if train_len_mask[i]]
+    return train, train_len_mask
+
+
 # Reproducibility
 def set_seed(seed):
     torch.backends.cudnn.deterministic = True

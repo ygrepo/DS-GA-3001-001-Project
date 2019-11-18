@@ -6,13 +6,13 @@ import pandas as pd
 from torch.utils.data import DataLoader
 
 from ts.es_rnn.config import get_config
-from ts.es_rnn.data_loading import create_datasets, SeriesDataset
+from ts.es_rnn.data_loading import SeriesDataset
+
 from ts.es_rnn.model import ESRNN
 from ts.es_rnn.trainer import ESRNNTrainer
-from ts.utils.helper_funcs import set_seed
+from ts.utils.helper_funcs import set_seed, create_datasets
 
 set_seed(0)
-
 
 run_id = str(int(time.time()))
 model_name = "esrnn"
@@ -29,7 +29,7 @@ LOG_DIR = Path("logs/esrnn")
 FIGURE_PATH = Path("figures/esrnn")
 
 print("loading config")
-config = get_config("Hourly")
+config = get_config("Weekly")
 #config = get_config("Monthly")
 
 print("loading data")
@@ -39,7 +39,9 @@ train_path = str(BASE_DIR / "train/%s-train.csv") % (config["variable"])
 test_path = str(BASE_DIR / "test/%s-test.csv") % (config["variable"])
 
 sample = config["sample"]
-train, ts_labels, val, test, test_idx = create_datasets(train_path, test_path, config["output_size"], sample=sample)
+sample_ids = config["sample_ids"] if "sample_ids" in config else []
+train, ts_labels, val, test, test_idx = create_datasets(train_path, test_path, config["output_size"], sample_ids,
+                                                        sample=sample)
 print("#of train ts:{}, dimensions of validation ts:{}, dimensions of test ts:{}".format(train.shape, val.shape,
                                                                                          test.shape))
 
