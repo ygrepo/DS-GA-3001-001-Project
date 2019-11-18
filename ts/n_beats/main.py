@@ -23,7 +23,7 @@ def main():
     FIGURE_PATH = Path("figures/nbeats")
 
     print("Loading config")
-    config = get_config("Yearly")
+    config = get_config("Hourly")
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
 

@@ -92,6 +92,36 @@ def get_config(interval):
             #"sample_ids": [],
             "sample_ids": ["Y3974"],
         })
+    elif interval == "Weekly":
+        config.update({
+            #     RUNTIME PARAMETERS
+            "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
+            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
+            "thetas_dims": [2, 8],
+            "nb_blocks_per_stack": 3,
+            "hidden_layer_units": 128,
+            "share_weights_in_stack": True,
+            "variable": "Weekly",
+            "seasonality": 1,
+            "output_size": 13,
+            "sample_ids": [],
+            #"sample_ids": ["W246"],
+        })
+    elif interval == "Hourly":
+        config.update({
+            #     RUNTIME PARAMETERS
+            "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
+            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
+            "thetas_dims": [2, 8],
+            "nb_blocks_per_stack": 3,
+            "hidden_layer_units": 128,
+            "share_weights_in_stack": True,
+            "variable": "Hourly",
+            "seasonality": 24,
+            "output_size": 48,
+            #"sample_ids": [],
+            "sample_ids": ["H344"],
+        })
     else:
         print("I dont have that config. :(")
 
