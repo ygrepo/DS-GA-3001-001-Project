@@ -28,11 +28,12 @@ def get_config(interval):
         "lr_anneal_step": 5,
         "sample": True,
         "reload": False,
-        "add_run_id": False
+        "add_run_id": False,
     }
 
     if interval == "Quarterly":
         config.update({
+            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
             "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
@@ -41,13 +42,15 @@ def get_config(interval):
             "variable": "Quarterly",
             "seasonality": 4,
             "output_size": 8,
+            "sample_ids": [],
+            #"sample_ids": ["Q11588"],
         })
     elif interval == "Monthly":
         config.update({
             #     RUNTIME PARAMETERS
-            "stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
-            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
-            "thetas_dims": [2, 4, 8],
+            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
+            "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
+            "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
             "share_weights_in_stack": True,
@@ -55,31 +58,39 @@ def get_config(interval):
             "variable": "Monthly",
             "seasonality": 12,
             "output_size": 18,
+            #"sample_ids": [],
+            "sample_ids": ["M19006"],
         })
     elif interval == "Daily":
         config.update({
             #     RUNTIME PARAMETERS
-            "stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
-            "thetas_dims": [7, 8],
+            "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
+            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
+            "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
             "share_weights_in_stack": True,
             "variable": "Daily",
             "seasonality": 7,
             "output_size": 14,
+            "sample_ids": [],
+            #"sample_ids": ["D404"],
         })
     elif interval == "Yearly":
 
         config.update({
             #     RUNTIME PARAMETERS
-            "stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
-            "thetas_dims": [7, 8],
+            "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
+            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
+            "thetas_dims": [3, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
             "share_weights_in_stack": True,
             "variable": "Yearly",
             "seasonality": 1,
             "output_size": 6,
+            #"sample_ids": [],
+            "sample_ids": ["Y3974"],
         })
     else:
         print("I dont have that config. :(")

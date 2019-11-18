@@ -11,14 +11,28 @@ def seasonality_model(thetas, t, device):
     s1 = torch.tensor([np.cos(2 * np.pi * i * t) for i in range(p1)]).float()  # H/2-1
     s2 = torch.tensor([np.sin(2 * np.pi * i * t) for i in range(p2)]).float()
     S = torch.cat([s1, s2])
-    return thetas.squeeze().mm(S.to(device))
+    thetas_p = thetas.view(thetas.shape[0] * thetas.shape[1], thetas.shape[2])
+    mm_t = torch.mm(thetas_p, S.to(device))
+    #print(thetas.shape, thetas_p.shape, S.shape, mm_t.shape)
+    if thetas.shape[1] == 1:
+        return mm_t.unsqueeze(1)
+    else:
+        return mm_t.view(thetas.shape[0], thetas.shape[1], -1)
+    #return thetas.squeeze().mm(S.to(device))
 
 
 def trend_model(thetas, t, device):
     p = thetas.size()[-1]
     assert p <= 4, "thetas_dim is too big."
     T = torch.tensor([t ** i for i in range(p)]).float()
-    return thetas.squeeze().mm(T.to(device))
+    thetas_p = thetas.view(thetas.shape[0] * thetas.shape[1], thetas.shape[2])
+    mm_t = torch.mm(thetas_p, T.to(device))
+    #print(thetas.shape, thetas_p.shape, T.shape, mm_t.shape)
+    if thetas.shape[1] == 1:
+        return mm_t.unsqueeze(1)
+    else:
+        return mm_t.view(thetas.shape[0], thetas.shape[1], -1)
+#    return thetas.squeeze().mm(T.to(device))
 
 
 def linspace(backcast_length, forecast_length):
@@ -169,6 +183,8 @@ class NBeatsNet(nn.Module):
 
     def forward(self, backcast):
         forecast = torch.zeros(
+            #size=(backcast.shape[0], self.forecast_length,))  # maybe batch size here.
+            #size=(backcast.shape[1], backcast.shape[0], self.forecast_length,))  # maybe batch size here.
             size=(backcast.shape[0], backcast.shape[1], self.forecast_length,))  # maybe batch size here.
         for stack_id in range(len(self.stacks)):
             for block_id in range(len(self.stacks[stack_id])):

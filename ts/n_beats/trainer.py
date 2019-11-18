@@ -1,18 +1,18 @@
 import copy
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 
 from ts.abstract_trainer import BaseTrainer
-from ts.utils.loss_modules import np_sMAPE
 from ts.utils.helper_funcs import plot_ts
+from ts.utils.loss_modules import np_sMAPE
 
 
 class Trainer(BaseTrainer):
-    def __init__(self, model_name, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length, ohe_headers,
+    def __init__(self, model_name, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length,
+                 ohe_headers,
                  csv_path, figure_path, sampling, reload):
         super().__init__(model_name, model, dataloader, run_id, add_run_id, config, ohe_headers,
                          csv_path, figure_path, sampling, reload)
@@ -29,8 +29,44 @@ class Trainer(BaseTrainer):
             window_input_list.append(train[:, i - self.backcast_length:i])
             window_output_list.append(train[:, i:i + self.forecast_length])
 
-        window_input = torch.cat([i.unsqueeze(0) for i in window_input_list], dim=0)
-        window_output = torch.cat([i.unsqueeze(0) for i in window_output_list], dim=0)
+        if len(window_output_list) == 1:
+            window_input = torch.cat([i.unsqueeze(1) for i in window_input_list], dim=0)
+            window_output = torch.cat([i.unsqueeze(1) for i in window_output_list], dim=0)
+        else:
+            window_input = torch.cat([i.unsqueeze(0) for i in window_input_list], dim=0)
+            window_input = window_input.transpose(0, 1)
+            window_output = torch.cat([i.unsqueeze(0) for i in window_output_list], dim=0)
+            window_output = window_output.transpose(0, 1)
+
+        backcast, forecast = self.model(window_input)
+        loss = self.criterion(forecast, window_output)
+        loss.backward()
+        nn.utils.clip_grad_value_(self.model.parameters(), self.config["gradient_clipping"])
+        self.optimizer.step()
+        self.scheduler.step()
+        return float(loss)
+
+    def val(self, file_path, testing=False):
+        self.model.eval()
+        with torch.no_grad():
+            acts = []
+            preds = []
+            info_cats = []
+            hold_out_loss = 0
+            for batch_num, (train, val, test, info_cat, _, idx) in enumerate(self.data_loader):
+                target = test if testing else val
+                if testing:
+                    train = torch.cat((train, val), dim=1)
+                ts_len = train.shape[1]
+                input = train[:, ts_len - self.backcast_length:ts_len][np.newaxis, ...]
+                backcast, forecast = self.model(input)
+                hold_out_loss += self.criterion(forecast, target[np.newaxis, ...])
+                acts.extend(target.view(-1).cpu().detach().numpy())
+                preds.extend(forecast.view(-1).cpu().detach().numpy())
+                info_cats.append(info_cat.cpu().detach().numpy())
+
+            hold_out_loss = hold_out_loss / (batch_num + 1)
+
         # network_pred = self.series_forward(window_input[:-self.config["output_size"]])
         backcast, forecast = self.model(window_input)
         loss = self.criterion(forecast, window_output)
@@ -99,5 +135,6 @@ class Trainer(BaseTrainer):
             input = train[:, ts_len - self.backcast_length:ts_len][np.newaxis, ...]
             backcast, forecast = self.model(input)
             original_ts = torch.cat((train, target), axis=1)
-            predicted_ts = torch.cat((train, forecast.squeeze()), axis=1)
-            plot_ts(self.run_id, original_ts, predicted_ts, ts_labels, cats, self.figure_path, number_to_plot=train.shape[0])
+            predicted_ts = torch.cat((train, forecast.squeeze(axis=0)), axis=1)
+            plot_ts(self.run_id, original_ts, predicted_ts, ts_labels, cats, self.figure_path,
+                    number_to_plot=train.shape[0])

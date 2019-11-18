@@ -4,25 +4,6 @@ import torch
 from torch.utils.data import Dataset
 
 
-def read_file(file_location, sampling=False, sample_size=5):
-    series = []
-    ids = dict()
-    with open(file_location, "r") as file:
-        data = file.read().split("\n")
-
-    for i in range(1, len(data) - 1):
-        row = data[i].replace('"', '').split(',')
-        ts_values = np.array([float(j) for j in row[1:] if j != ""])
-        series.append(ts_values)
-        ids[row[0]] = i -1
-        if sampling and i == sample_size:
-            series = np.asarray(series)
-            return series, ids
-
-    series = np.asarray(series)
-    return series, ids
-
-
 def create_val_set(train, output_size):
     val = []
     new_train = []
@@ -32,11 +13,51 @@ def create_val_set(train, output_size):
     return np.array(new_train), np.array(val)
 
 
-def create_datasets(train_file_location, test_file_location, output_size, sample=False, sampling_size=5):
-    train, train_idx = read_file(train_file_location, sample, sampling_size)
-    test, test_idx = read_file(test_file_location, sample, sampling_size)
+def read_file(file_location, sample_ids, sampling=False, sample_size=5):
+    series = []
+    ids = dict()
+    with open(file_location, "r") as file:
+        data = file.read().split("\n")
+
+    for i in range(1, len(data) - 1):
+        row = data[i].replace('"', '').split(',')
+        ts_values = np.array([float(j) for j in row[1:] if j != ""])
+        series.append(ts_values)
+        ids[row[0]] = i - 1
+        if sampling and not sample_ids and i == sample_size:
+            series = np.asarray(series)
+            return series, ids
+
+    series = np.asarray(series)
+    return series, ids
+
+
+def filter_sample_ids(ts, ts_idx, sample_ids):
+    sampled_ts = []
+    ids = dict()
+    for i, id in enumerate(sample_ids):
+        if id not in ts_idx:
+            print("Could not find ts id:{}".format(id))
+            continue
+        sampled_ts.append(ts[ts_idx[id]].tolist())
+        ids[id] = i
+    return np.array(sampled_ts), ids
+
+
+def create_datasets(train_file_location, test_file_location, output_size, sample_ids, sample=False, sampling_size=5):
+    train, train_idx = read_file(train_file_location, sample_ids, sample, sampling_size)
+    if sample and sample_ids:
+        train, train_idx = filter_sample_ids(train, train_idx, sample_ids)
+
+    test, test_idx = read_file(test_file_location, sample_ids, sample, sampling_size)
+    if sample and sample_ids:
+        test, test_idx = filter_sample_ids(test, test_idx, sample_ids)
     train, val = create_val_set(train, output_size)
-    if sample:
+    if sample and sample_ids:
+        print("Sampling train data for {}".format(sample_ids))
+        print("Sampling test data for {}".format(sample_ids))
+
+    elif sample and not sample_ids:
         print("Sampling train data for {}".format(train_idx.keys()))
         print("Sampling test data for {}".format(test_idx.keys()))
 
@@ -91,7 +112,7 @@ class SeriesDataset(Dataset):
                self.dataVal[idx].to(self.device), \
                self.dataTest[idx].to(self.device), \
                self.dataInfoCat[idx].to(self.device), \
-                self.ts_labels[idx], \
+               self.ts_labels[idx], \
                idx
 
 

@@ -12,7 +12,6 @@ from ts.utils.helper_funcs import set_seed
 
 
 def main():
-
     set_seed(0)
 
     run_id = str(int(time.time()))
@@ -24,7 +23,7 @@ def main():
     FIGURE_PATH = Path("figures/nbeats")
 
     print("Loading config")
-    config = get_config("Quarterly")
+    config = get_config("Yearly")
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
 
@@ -34,8 +33,10 @@ def main():
     test_path = str(BASE_DIR / "test/%s-test.csv") % (config["variable"])
 
     sample = config["sample"]
+    sample_ids = config["sample_ids"] if "sample_ids" in config else []
     train, ts_labels, val, test, test_idx = create_datasets(train_path, test_path, config["output_size"],
-                                                            sample=sample, sampling_size=4)
+                                                            sample_ids=sample_ids, sample=sample,
+                                                            sampling_size=4)
     print("#of train ts:{}, dimensions of validation ts:{}, dimensions of test ts:{}".format(train.shape, val.shape,
                                                                                              test.shape))
 
