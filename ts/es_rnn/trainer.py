@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 from ts.abstract_trainer import BaseTrainer
-from ts.utils.loss_modules import np_sMAPE
+from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
 from ts.utils.helper_funcs import plot_ts
 
 
@@ -33,6 +33,7 @@ class ESRNNTrainer(BaseTrainer):
         self.model.eval()
         with torch.no_grad():
             acts = []
+            total_acts = []
             preds = []
             info_cats = []
 
@@ -45,6 +46,8 @@ class ESRNNTrainer(BaseTrainer):
                 hold_out_loss += self.criterion(network_output_non_train.unsqueeze(0).float(),
                                                 hold_out_act_deseas_norm.unsqueeze(0).float())
                 acts.extend(hold_out_act.view(-1).cpu().detach().numpy())
+                total_act = torch.cat((train, hold_out_pred), dim=1)
+                total_acts.extend(total_act.view(-1).cpu().detach().numpy())
                 preds.extend(hold_out_pred.view(-1).cpu().detach().numpy())
                 info_cats.append(info_cat.cpu().detach().numpy())
             hold_out_loss = hold_out_loss / (batch_num + 1)
@@ -59,6 +62,14 @@ class ESRNNTrainer(BaseTrainer):
             overall_hold_out_df["category"] = ["Overall" for _ in cats]
 
             overall_hold_out_df = pd.concat((_hold_out_df, overall_hold_out_df))
+
+            mase = np_mase(total_acts, self.config["output_size"])
+            grouped_results = overall_hold_out_df.groupby(["category"]).apply(
+                lambda x: np_MASE(x.preds, x.acts, mase, x.shape[0]))
+            results = grouped_results.to_dict()
+            print("============== MASE ==============")
+            print(results)
+
             grouped_results = overall_hold_out_df.groupby(["category"]).apply(
                 lambda x: np_sMAPE(x.preds, x.acts, x.shape[0]))
 
