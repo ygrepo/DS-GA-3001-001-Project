@@ -7,7 +7,7 @@ import torch.nn as nn
 
 from ts.abstract_trainer import BaseTrainer
 from ts.utils.helper_funcs import plot_ts
-from ts.utils.loss_modules import np_sMAPE
+from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
 
 
 class Trainer(BaseTrainer):
@@ -46,11 +46,13 @@ class Trainer(BaseTrainer):
         self.scheduler.step()
         return float(loss)
 
+
     def val(self, file_path, testing=False):
         self.model.eval()
         with torch.no_grad():
             acts = []
             preds = []
+            total_acts = []
             info_cats = []
             hold_out_loss = 0
             for batch_num, (train, val, test, info_cat, _, idx) in enumerate(self.data_loader):
@@ -63,36 +65,8 @@ class Trainer(BaseTrainer):
                 hold_out_loss += self.criterion(forecast, target[np.newaxis, ...])
                 acts.extend(target.view(-1).cpu().detach().numpy())
                 preds.extend(forecast.view(-1).cpu().detach().numpy())
-                info_cats.append(info_cat.cpu().detach().numpy())
-
-            hold_out_loss = hold_out_loss / (batch_num + 1)
-
-        # network_pred = self.series_forward(window_input[:-self.config["output_size"]])
-        backcast, forecast = self.model(window_input)
-        loss = self.criterion(forecast, window_output)
-        loss.backward()
-        nn.utils.clip_grad_value_(self.model.parameters(), self.config["gradient_clipping"])
-        self.optimizer.step()
-        self.scheduler.step()
-        return float(loss)
-
-    def val(self, file_path, testing=False):
-        self.model.eval()
-        with torch.no_grad():
-            acts = []
-            preds = []
-            info_cats = []
-            hold_out_loss = 0
-            for batch_num, (train, val, test, info_cat, _, idx) in enumerate(self.data_loader):
-                target = test if testing else val
-                if testing:
-                    train = torch.cat((train, val), dim=1)
-                ts_len = train.shape[1]
-                input = train[:, ts_len - self.backcast_length:ts_len][np.newaxis, ...]
-                backcast, forecast = self.model(input)
-                hold_out_loss += self.criterion(forecast, target[np.newaxis, ...])
-                acts.extend(target.view(-1).cpu().detach().numpy())
-                preds.extend(forecast.view(-1).cpu().detach().numpy())
+                total_act = torch.cat((train, forecast.view(forecast.shape[1], -1)), dim=1)
+                total_acts.extend(total_act.view(-1).cpu().detach().numpy())
                 info_cats.append(info_cat.cpu().detach().numpy())
 
             hold_out_loss = hold_out_loss / (batch_num + 1)
@@ -107,11 +81,20 @@ class Trainer(BaseTrainer):
             overall_hold_out_df["category"] = ["Overall" for _ in cats]
 
             overall_hold_out_df = pd.concat((_hold_out_df, overall_hold_out_df), sort=False)
+
+            mase = np_mase(total_acts, self.config["output_size"])
+            grouped_results = overall_hold_out_df.groupby(["category"]).apply(
+                lambda x: np_MASE(x.preds, x.acts, mase, x.shape[0]))
+            results = grouped_results.to_dict()
+            print("============== MASE ==============")
+            print(results)
+
             grouped_results = overall_hold_out_df.groupby(["category"]).apply(
                 lambda x: np_sMAPE(x.preds, x.acts, x.shape[0]))
 
             results = grouped_results.to_dict()
             results["hold_out_loss"] = float(hold_out_loss.detach().cpu())
+            print("============== sMAPE ==============")
             print(results)
 
             self.log_values(results)

@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from torch.nn import SmoothL1Loss, MSELoss
 
-from ts.utils.helper_funcs import load, save
+from ts.utils.helper_funcs import load, save, plot_bc_fc
 from ts.utils.logger import Logger
 from ts.utils.loss_modules import PinballLoss
 
@@ -67,6 +67,7 @@ class BaseTrainer(nn.Module):
                 f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
             self.epochs += 1
         if self.sampling:
+#            plot_bc_fc(self.run_id, self.figure_path, self.model.stacks[0][0].backcasts, self.model.stacks[0][0].forecasts)
             self.plot(testing=True)
         print("Total Training in mins: %5.2f" % ((time.time() - start_time) / 60))
 

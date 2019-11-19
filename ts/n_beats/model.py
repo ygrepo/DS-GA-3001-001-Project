@@ -63,6 +63,8 @@ class Block(nn.Module):
         else:
             self.theta_b_fc = nn.Linear(units, thetas_dim)
             self.theta_f_fc = nn.Linear(units, thetas_dim)
+        self.backcasts = []
+        self.forecasts = []
 
     def forward(self, x):
         x = F.relu(self.fc1(x.to(self.device)))
@@ -88,6 +90,8 @@ class SeasonalityBlock(Block):
         x = super(SeasonalityBlock, self).forward(x)
         backcast = seasonality_model(self.theta_b_fc(x), self.backcast_linspace, self.device)
         forecast = seasonality_model(self.theta_f_fc(x), self.forecast_linspace, self.device)
+        self.backcasts.append(backcast)
+        self.forecasts.append(forecast)
         return backcast, forecast
 
 
@@ -101,6 +105,8 @@ class TrendBlock(Block):
         x = super(TrendBlock, self).forward(x)
         backcast = trend_model(self.theta_b_fc(x), self.backcast_linspace, self.device)
         forecast = trend_model(self.theta_f_fc(x), self.forecast_linspace, self.device)
+        self.backcasts.append(backcast)
+        self.forecasts.append(forecast)
         return backcast, forecast
 
 
@@ -121,6 +127,8 @@ class GenericBlock(Block):
 
         backcast = self.backcast_fc(theta_b)  # generic. 3.3.
         forecast = self.forecast_fc(theta_f)  # generic. 3.3.
+        self.backcasts.append(backcast)
+        self.forecasts.append(forecast)
 
         return backcast, forecast
 
@@ -171,6 +179,7 @@ class NBeatsNet(nn.Module):
             print(f"     | -- {block}")
             blocks.append(block)
         return blocks
+
 
     @staticmethod
     def select_block(block_type):

@@ -1,6 +1,6 @@
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 
 
 # Expression pinBallLoss(const Expression& out_ex, const Expression& actuals_ex) {//used by Dynet, learning loss function
@@ -91,6 +91,32 @@ def np_sMAPE(predictions, actuals, N):
     return float(sMAPE(predictions, actuals, N))
 
 
+def mase(predictions, actuals, weight, H):
+    """
+    Calculates MAsE
+    :param insample: insample data
+    :param predcitions: out of sample target values
+    :param actuals: predicted values
+    :param freq: data frequency
+    :return:
+    """
+
+    predictions = predictions.float()
+    actuals = actuals.float()
+    sumf = torch.sum(torch.abs(predictions - actuals)) / weight
+    return (sumf / H) * 100
+
+
+
+def np_MASE(predictions, actuals, weight, H):
+    predictions = torch.from_numpy(np.array(predictions))
+    actuals = torch.from_numpy(np.array(actuals))
+    return float(mase(predictions, actuals, weight, H))
+
+def np_mase(ts, freq):
+    ts = np.array(ts)
+    return np.mean(np.abs(ts[freq:] - ts[:-freq]))
+
 ### wQuantLoss
 
 # float wQuantLoss(vector<float>& out_vect, vector<float>& actuals_vect) {
@@ -157,6 +183,10 @@ def main():
     test2 = torch.rand(100)
     cpu_loss = non_sMAPE(test1, test2, 100)
     vec_loss = sMAPE(test1, test2, 100)
+    ts = np.random.randint(0, 10, 20)
+    ts_test = np.random.randint(0, 10, 6)
+    h = 6
+    print(mase(ts[:-h], ts[-h:], ts_test, 6))
 
 
 if __name__ == '__main__':

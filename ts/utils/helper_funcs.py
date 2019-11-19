@@ -137,6 +137,29 @@ def shuffled_arrays(a, b):
     return a[p], b[p], p
 
 
+def plot_bc_fc(run_id, path, bc, fc):
+    path.mkdir(parents=True, exist_ok=True)
+    fig, ax = plt.subplots(figsize=(17, 4))
+    plt.subplots_adjust(hspace=.3)
+
+    for i in range(len(bc)):
+        #fig_label_iter = iter(cats)
+        y = bc[i].squeeze().cpu().detach().numpy()
+        for j in range(y.shape[0]):
+            x = np.arange(y.shape[1])
+            ax.plot(x, y[i], "g-")
+
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Observations")
+    # ax.set_title(ts_label + " time Series:" + ts_labels[i])
+    ax.legend(("original", "predicted"))
+    # plt.savefig(path / ("window_" + run_id + " .png"))
+    plt.tight_layout()
+    sns.despine()
+    # if show:
+    plt.show()
+
+
 def plot_ts(run_id, original_ts, predicted_ts, ts_labels, cats, path, number_to_plot=1, show=True):
     path.mkdir(parents=True, exist_ok=True)
     fig, axes = plt.subplots(1, number_to_plot, figsize=(17, 4))
@@ -157,7 +180,7 @@ def plot_ts(run_id, original_ts, predicted_ts, ts_labels, cats, path, number_to_
         ts_label = next(fig_label_iter)
         ax.set_title(ts_label + " time Series:" + ts_labels[i])
         ax.legend(("original", "predicted"))
-    plt.savefig(path / ("original_time_series_" + run_id + " .png"))
+    plt.savefig(path / ("time_series_" + run_id + " .png"))
     plt.tight_layout()
     sns.despine()
     if show:
