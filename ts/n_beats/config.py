@@ -2,7 +2,7 @@ from math import sqrt
 
 import torch
 
-from ts.n_beats.model import NBeatsNet
+from ts.n_beats.model import BLOCK_TYPE
 
 
 def get_config(interval):
@@ -33,23 +33,24 @@ def get_config(interval):
 
     if interval == "Quarterly":
         config.update({
-            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
-            "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
+            # "stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
-            "share_weights_in_stack": True,
+            "share_weights_in_stack": False,
             "variable": "Quarterly",
             "seasonality": 4,
             "output_size": 8,
-            "sample_ids": [],
-            #"sample_ids": ["Q11588"],
+            # "sample_ids": [],
+            # "sample_ids": ["Q11588"],
+            "sample_ids": ["Q66"],
         })
     elif interval == "Monthly":
         config.update({
             #     RUNTIME PARAMETERS
-            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
-            "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
+            # "stack_types": [BLOCK_TYPE.GENERIC_BLOCK, BLOCK_TYPE.GENERIC_BLOCK],
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
@@ -58,14 +59,14 @@ def get_config(interval):
             "variable": "Monthly",
             "seasonality": 12,
             "output_size": 18,
-            #"sample_ids": [],
+            # "sample_ids": [],
             "sample_ids": ["M1"],
         })
     elif interval == "Daily":
         config.update({
             #     RUNTIME PARAMETERS
-            "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
-            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
+            # "stack_types": [BLOCK_TYPE.GENERIC_BLOCK, BLOCK_TYPE.GENERIC_BLOCK],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
@@ -74,14 +75,14 @@ def get_config(interval):
             "seasonality": 7,
             "output_size": 14,
             "sample_ids": [],
-            #"sample_ids": ["D404"],
+            # "sample_ids": ["D404"],
         })
     elif interval == "Yearly":
 
         config.update({
             #     RUNTIME PARAMETERS
-            "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
-            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
+            # "stack_types": [BLOCK_TYPE.GENERIC_BLOCK, BLOCK_TYPE.GENERIC_BLOCK],
             "thetas_dims": [3, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
@@ -89,14 +90,14 @@ def get_config(interval):
             "variable": "Yearly",
             "seasonality": 1,
             "output_size": 6,
-            #"sample_ids": [],
+            # "sample_ids": [],
             "sample_ids": ["Y3974"],
         })
     elif interval == "Weekly":
         config.update({
             #     RUNTIME PARAMETERS
-            "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
-            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
+            # "stack_types": [BLOCK_TYPE.GENERIC_BLOCK, BLOCK_TYPE.GENERIC_BLOCK],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
@@ -105,21 +106,21 @@ def get_config(interval):
             "seasonality": 1,
             "output_size": 13,
             "sample_ids": [],
-            #"sample_ids": ["W246"],
+            # "sample_ids": ["W246"],
         })
     elif interval == "Hourly":
         config.update({
             #     RUNTIME PARAMETERS
-            "stack_types": [NBeatsNet.TREND_BLOCK, NBeatsNet.SEASONALITY_BLOCK],
-            #"stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
+            # "stack_types": [BLOCK_TYPE.GENERIC_BLOCK, BLOCK_TYPE.GENERIC_BLOCK],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
-            "share_weights_in_stack": True,
+            "share_weights_in_stack": False,
             "variable": "Hourly",
             "seasonality": 24,
             "output_size": 48,
-            #"sample_ids": [],
+            # "sample_ids": [],
             "sample_ids": ["H344"],
         })
     else:

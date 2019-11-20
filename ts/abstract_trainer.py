@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from torch.nn import SmoothL1Loss, MSELoss
 
-from ts.utils.helper_funcs import load, save, plot_bc_fc
+from ts.utils.helper_funcs import NBEATS_MODEL_NAME, load, save, plot_stacks
 from ts.utils.logger import Logger
 from ts.utils.loss_modules import PinballLoss
 
@@ -62,12 +62,13 @@ class BaseTrainer(nn.Module):
                 file_path.mkdir(parents=True, exist_ok=True)
                 with open(file_path_validation_loss, "w") as f:
                     f.write("epoch,training_loss,validation_loss\n")
+            if e == self.max_epochs - 1 and self.model_name == NBEATS_MODEL_NAME:
+                plot_stacks(self.run_id, self.figure_path, self.model)
             epoch_val_loss = self.val(file_path)
             with open(file_path_validation_loss, "a") as f:
                 f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
             self.epochs += 1
         if self.sampling:
-#            plot_bc_fc(self.run_id, self.figure_path, self.model.stacks[0][0].backcasts, self.model.stacks[0][0].forecasts)
             self.plot(testing=True)
         print("Total Training in mins: %5.2f" % ((time.time() - start_time) / 60))
 

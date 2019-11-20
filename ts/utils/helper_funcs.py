@@ -5,6 +5,9 @@ import numpy as np
 import seaborn as sns
 import torch
 
+NBEATS_MODEL_NAME = "nbeats"
+ESRNN_MODEL_NAME = "esrnn"
+
 
 def colwise_batch_mask(target_shape_tuple, target_lens):
     # takes in (seq_len, B) shape and returns mask of same shape with ones up to the target lens
@@ -137,27 +140,51 @@ def shuffled_arrays(a, b):
     return a[p], b[p], p
 
 
-def plot_bc_fc(run_id, path, bc, fc):
+def plot_stacks(run_id, path, model, show=True):
     path.mkdir(parents=True, exist_ok=True)
-    fig, ax = plt.subplots(figsize=(17, 4))
-    plt.subplots_adjust(hspace=.3)
+    num_stacks = len(model.stacks)
+    num_blocks = len(model.stacks[0])
+    fig, axes = plt.subplots(num_blocks, num_stacks, figsize=(10, 12), sharey=False)
+    plt.subplots_adjust(hspace=.4)
 
-    for i in range(len(bc)):
-        #fig_label_iter = iter(cats)
-        y = bc[i].squeeze().cpu().detach().numpy()
-        for j in range(y.shape[0]):
-            x = np.arange(y.shape[1])
-            ax.plot(x, y[i], "g-")
+    for stack_id in range(num_stacks):
+        stack = model.stacks[stack_id]
+        for block_id in range(len(stack)):
+            block = stack[block_id]
+            ax = axes[block_id][stack_id]
+            plot_block_ts(ax, model.get_block(stack_id, block_id).backcasts[-1])
+            ax.set_xlabel("Time")
+            ax.set_ylabel("Observations")
+            legend_str = ("{}-{}".format(block.block_type, block.id))
+            ax.legend([legend_str], loc="best")
 
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Observations")
-    # ax.set_title(ts_label + " time Series:" + ts_labels[i])
-    ax.legend(("original", "predicted"))
-    # plt.savefig(path / ("window_" + run_id + " .png"))
+    plt.savefig(path / ("stack_" + run_id + " .png"))
     plt.tight_layout()
     sns.despine()
-    # if show:
-    plt.show()
+    if show:
+        plt.show()
+
+
+def plot_block_ts(ax, time_series):
+    time_series = time_series.squeeze().cpu().detach().numpy()
+    ts_range = time_series.shape[1]
+    num_segments = len(time_series)
+    start = 0
+    stop = ts_range
+    x_values = []
+    y_values = []
+    num_segments = min(100, num_segments)
+    for i in range(num_segments):
+        x = np.arange(start, stop)
+        x_values.extend(x.tolist())
+        y = time_series[i, :]
+        y_values.extend(y.tolist())
+        start += ts_range
+        stop += ts_range
+
+    ax.plot(np.array(x_values), np.array(y_values), "b-")
+    ax.set_autoscalex_on(True)
+    ax.set_autoscaley_on(True)
 
 
 def plot_ts(run_id, original_ts, predicted_ts, ts_labels, cats, path, number_to_plot=1, show=True):

@@ -8,15 +8,14 @@ from ts.n_beats.config import get_config
 from ts.n_beats.data_loading import SeriesDataset
 from ts.n_beats.model import NBeatsNet
 from ts.n_beats.trainer import Trainer
-from ts.utils.helper_funcs import set_seed, create_datasets
+from ts.utils.helper_funcs import NBEATS_MODEL_NAME, set_seed, create_datasets
 
 
 def main():
     set_seed(0)
 
     run_id = str(int(time.time()))
-    model_name = "nbeats"
-    print("Starting run={}, model={} ".format(run_id, model_name))
+    print("Starting run={}, model={} ".format(run_id, NBEATS_MODEL_NAME))
 
     BASE_DIR = Path("data/raw/")
     LOG_DIR = Path("logs/nbeats")
@@ -55,7 +54,7 @@ def main():
                       device=config["device"])
     reload = config["reload"]
     add_run_id = config["add_run_id"]
-    trainer = Trainer(model_name, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length,
+    trainer = Trainer(NBEATS_MODEL_NAME, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length,
                       ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
                       sampling=sample, reload=reload)
     trainer.train_epochs()

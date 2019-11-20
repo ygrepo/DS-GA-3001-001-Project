@@ -1,7 +1,15 @@
+from enum import Enum
+
 import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
+
+
+class BLOCK_TYPE(Enum):
+    SEASONALITY = "SEASONALITY"
+    TREND = "TREND"
+    GENERAL = "GENERAL"
 
 
 def seasonality_model(thetas, t, device):
@@ -13,12 +21,12 @@ def seasonality_model(thetas, t, device):
     S = torch.cat([s1, s2])
     thetas_p = thetas.view(thetas.shape[0] * thetas.shape[1], thetas.shape[2])
     mm_t = torch.mm(thetas_p, S.to(device))
-    #print(thetas.shape, thetas_p.shape, S.shape, mm_t.shape)
+    # print(thetas.shape, thetas_p.shape, S.shape, mm_t.shape)
     if thetas.shape[1] == 1:
         return mm_t.unsqueeze(1)
     else:
         return mm_t.view(thetas.shape[0], thetas.shape[1], -1)
-    #return thetas.squeeze().mm(S.to(device))
+    # return thetas.squeeze().mm(S.to(device))
 
 
 def trend_model(thetas, t, device):
@@ -27,11 +35,13 @@ def trend_model(thetas, t, device):
     T = torch.tensor([t ** i for i in range(p)]).float()
     thetas_p = thetas.view(thetas.shape[0] * thetas.shape[1], thetas.shape[2])
     mm_t = torch.mm(thetas_p, T.to(device))
-    #print(thetas.shape, thetas_p.shape, T.shape, mm_t.shape)
+    # print(thetas.shape, thetas_p.shape, T.shape, mm_t.shape)
     if thetas.shape[1] == 1:
         return mm_t.unsqueeze(1)
     else:
         return mm_t.view(thetas.shape[0], thetas.shape[1], -1)
+
+
 #    return thetas.squeeze().mm(T.to(device))
 
 
@@ -44,15 +54,17 @@ def linspace(backcast_length, forecast_length):
 
 class Block(nn.Module):
 
-    def __init__(self, units, thetas_dim, device, backcast_length=10, forecast_length=5, share_thetas=False):
+    def __init__(self, block_type, id, units, thetas_dim, device, backcast_length=10, forecast_length=5, share_thetas=False):
         super(Block, self).__init__()
+        self.block_type = block_type
+        self.id = id
         self.units = units
         self.thetas_dim = thetas_dim
         self.backcast_length = backcast_length
         self.forecast_length = forecast_length
         self.share_thetas = share_thetas
         self.fc1 = nn.Linear(backcast_length, units)
-        #self.fc1_bn = nn.BatchNorm1d(fc1_bn_size)
+        # self.fc1_bn = nn.BatchNorm1d(fc1_bn_size)
         self.fc2 = nn.Linear(units, units)
         self.fc3 = nn.Linear(units, units)
         self.fc4 = nn.Linear(units, units)
@@ -75,21 +87,22 @@ class Block(nn.Module):
 
     def __str__(self):
         block_type = type(self).__name__
-        return f"{block_type}(units={self.units}, thetas_dim={self.thetas_dim}, " \
+        return f"{block_type}(id={self.id}, units={self.units}, thetas_dim={self.thetas_dim}, " \
                f"backcast_length={self.backcast_length}, forecast_length={self.forecast_length}, " \
                f"share_thetas={self.share_thetas}) at @{id(self)}"
 
 
 class SeasonalityBlock(Block):
 
-    def __init__(self, units, thetas_dim, device, backcast_length=10, forecast_length=5):
-        super(SeasonalityBlock, self).__init__(units, thetas_dim, device, backcast_length,
+    def __init__(self, block_type, id, units, thetas_dim, device, backcast_length=10, forecast_length=5):
+        super(SeasonalityBlock, self).__init__(block_type, id, units, thetas_dim, device, backcast_length,
                                                forecast_length, share_thetas=True)
 
     def forward(self, x):
         x = super(SeasonalityBlock, self).forward(x)
         backcast = seasonality_model(self.theta_b_fc(x), self.backcast_linspace, self.device)
         forecast = seasonality_model(self.theta_f_fc(x), self.forecast_linspace, self.device)
+        #print("Adding backcast/forecast for block:{}".format(self.id))
         self.backcasts.append(backcast)
         self.forecasts.append(forecast)
         return backcast, forecast
@@ -97,14 +110,15 @@ class SeasonalityBlock(Block):
 
 class TrendBlock(Block):
 
-    def __init__(self, units, thetas_dim, device, backcast_length=10, forecast_length=5):
-        super(TrendBlock, self).__init__(units, thetas_dim, device, backcast_length,
+    def __init__(self, block_type, id, units, thetas_dim, device, backcast_length=10, forecast_length=5):
+        super(TrendBlock, self).__init__(block_type, id, units, thetas_dim, device, backcast_length,
                                          forecast_length, share_thetas=True)
 
     def forward(self, x):
         x = super(TrendBlock, self).forward(x)
         backcast = trend_model(self.theta_b_fc(x), self.backcast_linspace, self.device)
         forecast = trend_model(self.theta_f_fc(x), self.forecast_linspace, self.device)
+        #print("Adding backcast/forecast for block:{}".format(self.id))
         self.backcasts.append(backcast)
         self.forecasts.append(forecast)
         return backcast, forecast
@@ -112,8 +126,8 @@ class TrendBlock(Block):
 
 class GenericBlock(Block):
 
-    def __init__(self, units, thetas_dim, device, backcast_length=10, forecast_length=5):
-        super(GenericBlock, self).__init__(units, thetas_dim, device, backcast_length, forecast_length)
+    def __init__(self, block_type, id, units, thetas_dim, device, backcast_length=10, forecast_length=5):
+        super(GenericBlock, self).__init__(block_type, id, units, thetas_dim, device, backcast_length, forecast_length)
 
         self.backcast_fc = nn.Linear(thetas_dim, backcast_length)
         self.forecast_fc = nn.Linear(thetas_dim, forecast_length)
@@ -134,13 +148,10 @@ class GenericBlock(Block):
 
 
 class NBeatsNet(nn.Module):
-    SEASONALITY_BLOCK = "seasonality"
-    TREND_BLOCK = "trend"
-    GENERIC_BLOCK = "generic"
 
     def __init__(self,
                  device,
-                 stack_types=[TREND_BLOCK, SEASONALITY_BLOCK],
+                 stack_types=[BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
                  nb_blocks_per_stack=3,
                  forecast_length=5,
                  backcast_length=10,
@@ -166,34 +177,44 @@ class NBeatsNet(nn.Module):
 
     def create_stack(self, stack_id):
         stack_type = self.stack_types[stack_id]
-        print(f"| --  Stack {stack_type.title()} (#{stack_id}) (share_weights_in_stack={self.share_weights_in_stack})")
+        print(f"| --  Stack {stack_type.value} (#{stack_id}) (share_weights_in_stack={self.share_weights_in_stack})")
         blocks = []
         for block_id in range(self.nb_blocks_per_stack):
             block_init = NBeatsNet.select_block(stack_type)
             if self.share_weights_in_stack and block_id != 0:
                 block = blocks[-1]  # pick up the last one to make the
             else:
-                block = block_init(self.hidden_layer_units, self.thetas_dim[stack_id],
+                block_id_str = str(stack_id) + "_" + str(block_id)
+                print("Creating block:{}".format(block_id_str))
+                block = block_init(stack_type, block_id_str, self.hidden_layer_units, self.thetas_dim[stack_id],
                                    self.device, self.backcast_length, self.forecast_length)
                 self.parameters.extend(block.parameters())
             print(f"     | -- {block}")
             blocks.append(block)
         return blocks
 
+    def get_block(self, stack_id, block_id):
+        if stack_id > len(self.stacks):
+            print("Invalid stack id!!!")
+            return None
+        if block_id > len(self.stacks[stack_id]):
+            print("Invalid block id!!!")
+            return None
+        return self.stacks[stack_id][block_id]
 
     @staticmethod
     def select_block(block_type):
-        if block_type == NBeatsNet.SEASONALITY_BLOCK:
+        if block_type == BLOCK_TYPE.SEASONALITY:
             return SeasonalityBlock
-        elif block_type == NBeatsNet.TREND_BLOCK:
+        elif block_type == BLOCK_TYPE.TREND:
             return TrendBlock
         else:
             return GenericBlock
 
     def forward(self, backcast):
         forecast = torch.zeros(
-            #size=(backcast.shape[0], self.forecast_length,))  # maybe batch size here.
-            #size=(backcast.shape[1], backcast.shape[0], self.forecast_length,))  # maybe batch size here.
+            # size=(backcast.shape[0], self.forecast_length,))  # maybe batch size here.
+            # size=(backcast.shape[1], backcast.shape[0], self.forecast_length,))  # maybe batch size here.
             size=(backcast.shape[0], backcast.shape[1], self.forecast_length,))  # maybe batch size here.
         for stack_id in range(len(self.stacks)):
             for block_id in range(len(self.stacks[stack_id])):

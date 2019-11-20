@@ -10,13 +10,12 @@ from ts.es_rnn.data_loading import SeriesDataset
 
 from ts.es_rnn.model import ESRNN
 from ts.es_rnn.trainer import ESRNNTrainer
-from ts.utils.helper_funcs import set_seed, create_datasets
+from ts.utils.helper_funcs import ESRNN_MODEL_NAME, set_seed, create_datasets
 
 set_seed(0)
 
 run_id = str(int(time.time()))
-model_name = "esrnn"
-print("Starting run={}, model={} ".format(run_id, model_name))
+print("Starting run={}, model={} ".format(run_id, ESRNN_MODEL_NAME))
 
 try:
     user_paths = os.environ["PYTHONPATH"].split(os.pathsep)
@@ -52,7 +51,7 @@ dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
 model = ESRNN(num_series=len(dataset), config=config)
 reload = config["reload"]
 add_run_id = config["add_run_id"]
-tr = ESRNNTrainer(model_name, model, dataloader, run_id, add_run_id, config, ohe_headers=dataset.dataInfoCatHeaders,
+tr = ESRNNTrainer(ESRNN_MODEL_NAME, model, dataloader, run_id, add_run_id, config, ohe_headers=dataset.dataInfoCatHeaders,
                   csv_path=LOG_DIR,
                   figure_path=FIGURE_PATH, sampling=sample, reload=reload)
 tr.train_epochs()
