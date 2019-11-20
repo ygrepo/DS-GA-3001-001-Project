@@ -91,18 +91,22 @@ class Trainer(BaseTrainer):
 
             grouped_results = overall_hold_out_df.groupby(["category"]).apply(
                 lambda x: np_sMAPE(x.preds, x.acts, x.shape[0]))
-
             results = grouped_results.to_dict()
-            results["hold_out_loss"] = float(hold_out_loss.detach().cpu())
+
             print("============== sMAPE ==============")
             print(results)
 
+            hold_out_loss = float(hold_out_loss.detach().cpu())
+            print("============== HOLD-OUT-LOSS ==============")
+            print("hold_out_loss:{:5.2f}".format(hold_out_loss))
+
+            results["hold_out_loss"] = hold_out_loss
             self.log_values(results)
 
             grouped_path = file_path / ("grouped_results-{}.csv".format(self.epochs))
             grouped_results.to_csv(grouped_path, header=True)
 
-        return hold_out_loss.detach().cpu().item()
+        return hold_out_loss
 
     def plot(self, testing=False):
         self.model.eval()

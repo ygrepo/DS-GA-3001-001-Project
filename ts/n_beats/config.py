@@ -29,11 +29,11 @@ def get_config(interval):
         "sample": True,
         "reload": False,
         "add_run_id": False,
+        "save_model": True
     }
 
     if interval == "Quarterly":
         config.update({
-            # "stack_types": [NBeatsNet.GENERIC_BLOCK, NBeatsNet.GENERIC_BLOCK],
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
@@ -48,8 +48,6 @@ def get_config(interval):
         })
     elif interval == "Monthly":
         config.update({
-            #     RUNTIME PARAMETERS
-            # "stack_types": [BLOCK_TYPE.GENERIC_BLOCK, BLOCK_TYPE.GENERIC_BLOCK],
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
@@ -66,7 +64,6 @@ def get_config(interval):
         config.update({
             #     RUNTIME PARAMETERS
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
-            # "stack_types": [BLOCK_TYPE.GENERIC_BLOCK, BLOCK_TYPE.GENERIC_BLOCK],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
@@ -82,7 +79,6 @@ def get_config(interval):
         config.update({
             #     RUNTIME PARAMETERS
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
-            # "stack_types": [BLOCK_TYPE.GENERIC_BLOCK, BLOCK_TYPE.GENERIC_BLOCK],
             "thetas_dims": [3, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
@@ -97,7 +93,6 @@ def get_config(interval):
         config.update({
             #     RUNTIME PARAMETERS
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
-            # "stack_types": [BLOCK_TYPE.GENERIC_BLOCK, BLOCK_TYPE.GENERIC_BLOCK],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,
@@ -112,7 +107,6 @@ def get_config(interval):
         config.update({
             #     RUNTIME PARAMETERS
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
-            # "stack_types": [BLOCK_TYPE.GENERIC_BLOCK, BLOCK_TYPE.GENERIC_BLOCK],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 128,

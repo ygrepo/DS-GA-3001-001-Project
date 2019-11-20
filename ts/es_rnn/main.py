@@ -25,7 +25,7 @@ except KeyError:
 
 BASE_DIR = Path("data/raw/")
 LOG_DIR = Path("logs/esrnn")
-FIGURE_PATH = Path("figures/esrnn")
+FIGURE_PATH = Path("figures-temp/esrnn")
 
 print("loading config")
 config = get_config("Monthly")

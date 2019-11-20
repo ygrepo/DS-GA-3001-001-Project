@@ -51,7 +51,7 @@ class BaseTrainer(nn.Module):
             load(file_path, self.model, self.optimizer)
         for e in range(self.max_epochs):
             epoch_loss = self.train()
-            if epoch_loss < max_loss:
+            if self.config["save_model"] and epoch_loss < max_loss:
                 print("Loss decreased, saving model!")
                 file_path = Path(".") / ("models/" + self.model_name)
                 save(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)

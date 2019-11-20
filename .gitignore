@@ -21,9 +21,12 @@ __pycache__
 imdb
 data/
 
+# Skip temporary figures
+figures-temp
 
 # Ignore log files
 logs/
 
 # Ignore models
 # models/
+

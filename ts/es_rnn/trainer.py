@@ -6,12 +6,13 @@ import torch
 import torch.nn as nn
 
 from ts.abstract_trainer import BaseTrainer
-from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
 from ts.utils.helper_funcs import plot_ts
+from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
 
 
 class ESRNNTrainer(BaseTrainer):
-    def __init__(self, model_name, model, dataloader, run_id, add_run_id, config, ohe_headers, csv_path, figure_path, sampling, reload):
+    def __init__(self, model_name, model, dataloader, run_id, add_run_id, config, ohe_headers, csv_path, figure_path,
+                 sampling, reload):
         super().__init__(model_name, model, dataloader, run_id, add_run_id, config, ohe_headers,
                          csv_path, figure_path, sampling, reload)
 
@@ -72,16 +73,22 @@ class ESRNNTrainer(BaseTrainer):
 
             grouped_results = overall_hold_out_df.groupby(["category"]).apply(
                 lambda x: np_sMAPE(x.preds, x.acts, x.shape[0]))
-
             results = grouped_results.to_dict()
-            results["hold_out_loss"] = float(hold_out_loss.detach().cpu())
+
+            print("============== sMAPE ==============")
             print(results)
 
+            hold_out_loss = float(hold_out_loss.detach().cpu())
+            print("============== HOLD-OUT-LOSS ==============")
+            print("hold_out_loss:{:5.2f}".format(hold_out_loss))
+
+            results["hold_out_loss"] = hold_out_loss
             self.log_values(results)
+
             grouped_path = file_path / ("grouped_results-{}.csv".format(self.epochs))
             grouped_results.to_csv(grouped_path, header=True)
 
-        return hold_out_loss.detach().cpu().item()
+        return hold_out_loss
 
     def plot(self, testing=False):
         self.model.eval()
@@ -92,7 +99,8 @@ class ESRNNTrainer(BaseTrainer):
 
             if testing:
                 train = torch.cat((train, val), dim=1)
-            _, _, (hold_out_pred, _), (hold_out_act, _),_ = self.model(train, val, test, info_cat, idx, testing=testing)
+            _, _, (hold_out_pred, _), (hold_out_act, _), _ = self.model(train, val, test, info_cat, idx,
+                                                                        testing=testing)
             original_ts = torch.cat((train, hold_out_act), axis=1)
             predicted_ts = torch.cat((train, hold_out_pred), axis=1)
             plot_ts(self.run_id, original_ts, predicted_ts, ts_labels, cats, self.figure_path,

@@ -158,7 +158,7 @@ def plot_stacks(run_id, path, model, show=True):
             legend_str = ("{}-{}".format(block.block_type, block.id))
             ax.legend([legend_str], loc="best")
 
-    plt.savefig(path / ("stack_" + run_id + " .png"))
+    plt.savefig(path / ("stack_" + run_id + ".png"))
     plt.tight_layout()
     sns.despine()
     if show:
@@ -207,7 +207,7 @@ def plot_ts(run_id, original_ts, predicted_ts, ts_labels, cats, path, number_to_
         ts_label = next(fig_label_iter)
         ax.set_title(ts_label + " time Series:" + ts_labels[i])
         ax.legend(("original", "predicted"))
-    plt.savefig(path / ("time_series_" + run_id + " .png"))
+    plt.savefig(path / ("time_series_" + run_id + ".png"))
     plt.tight_layout()
     sns.despine()
     if show:

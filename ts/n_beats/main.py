@@ -19,10 +19,10 @@ def main():
 
     BASE_DIR = Path("data/raw/")
     LOG_DIR = Path("logs/nbeats")
-    FIGURE_PATH = Path("figures/nbeats")
+    FIGURE_PATH = Path("figures-temp/nbeats")
 
     print("Loading config")
-    config = get_config("Quarterly")
+    config = get_config("Yearly")
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
 

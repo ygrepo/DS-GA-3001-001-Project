@@ -29,13 +29,13 @@ def get_config(interval):
         "lr_anneal_step": 5,
         "sample": True,
         "reload": False,
-        "add_run_id": True
+        "add_run_id": True,
+        "save_model": True,
     }
 
     if interval == "Quarterly":
         config.update({
-            "chop_val": 15,
-            #"chop_val": 72,
+            "chop_val": 72,
             "variable": "Quarterly",
             "dilations": ((1, 2), (4, 8)),
             "state_hsize": 40,
@@ -44,12 +44,10 @@ def get_config(interval):
             "output_size": 8,
             "level_variability_penalty": 80,
             "sample_ids": [],
-            #"sample_ids": ["Q11588"],
+            # "sample_ids": ["Q11588"],
         })
     elif interval == "Monthly":
         config.update({
-            #     RUNTIME PARAMETERS
-            #"chop_val": 19,
             "chop_val": 72,
             "variable": "Monthly",
             "dilations": ((1, 3), (6, 12)),
@@ -59,11 +57,10 @@ def get_config(interval):
             "output_size": 18,
             "level_variability_penalty": 50,
             "sample_ids": [],
-            #"sample_ids": ["M1"],
+            # "sample_ids": ["M1"],
         })
     elif interval == "Daily":
         config.update({
-            #     RUNTIME PARAMETERS
             "chop_val": 200,
             "variable": "Daily",
             "dilations": ((1, 7), (14, 28)),
@@ -72,13 +69,12 @@ def get_config(interval):
             "input_size": 7,
             "output_size": 14,
             "level_variability_penalty": 50,
-            #"sample_ids": [],
+            # "sample_ids": [],
             "sample_ids": ["D1"],
         })
     elif interval == "Yearly":
 
         config.update({
-            #     RUNTIME PARAMETERS
             "chop_val": 25,
             "variable": "Yearly",
             "dilations": ((1, 2), (2, 6)),
@@ -88,12 +84,11 @@ def get_config(interval):
             "output_size": 6,
             "level_variability_penalty": 0,
             "sample_ids": [],
-            #"sample_ids": ["Y3974"],
+            # "sample_ids": ["Y3974"],
         })
     elif interval == "Weekly":
         config.update({
             #     RUNTIME PARAMETERS
-            #"chop_val": 1,
             "chop_val": 25,
             "variable": "Weekly",
             "dilations": ((1, 14), (14, 28)),
@@ -102,13 +97,12 @@ def get_config(interval):
             "input_size": 1,
             "output_size": 13,
             "level_variability_penalty": 0,
-            #"sample_ids": [],
+            # "sample_ids": [],
             "sample_ids": ["W1"],
         })
     elif interval == "Hourly":
         config.update({
             #     RUNTIME PARAMETERS
-            #"chop_val": 1,
             "chop_val": 25,
             "variable": "Hourly",
             "dilations": ((1, 24), (24, 48)),
@@ -118,7 +112,7 @@ def get_config(interval):
             "output_size": 48,
             "level_variability_penalty": 0,
             "sample_ids": [],
-            #"sample_ids": ["H344"],
+            # "sample_ids": ["H344"],
         })
     else:
         print("I don\"t have that config. :(")
