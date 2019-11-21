@@ -29,7 +29,8 @@ def get_config(interval):
         "sample": True,
         "reload": False,
         "add_run_id": False,
-        "save_model": True
+        "save_model": True,
+        "plot_ts": True
     }
 
     if interval == "Quarterly":

@@ -1,4 +1,5 @@
 import random
+from enum import Enum
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,6 +8,12 @@ import torch
 
 NBEATS_MODEL_NAME = "nbeats"
 ESRNN_MODEL_NAME = "esrnn"
+
+
+class BLOCK_TYPE(Enum):
+    SEASONALITY = "SEASONALITY"
+    TREND = "TREND"
+    GENERAL = "GENERAL"
 
 
 def colwise_batch_mask(target_shape_tuple, target_lens):
@@ -140,7 +147,7 @@ def shuffled_arrays(a, b):
     return a[p], b[p], p
 
 
-def plot_stacks(run_id, path, model, show=True):
+def plot_stacks(run_id, path, model):
     path.mkdir(parents=True, exist_ok=True)
     num_stacks = len(model.stacks)
     num_blocks = len(model.stacks[0])
@@ -152,42 +159,50 @@ def plot_stacks(run_id, path, model, show=True):
         for block_id in range(len(stack)):
             block = stack[block_id]
             ax = axes[block_id][stack_id]
-            plot_block_ts(ax, model.get_block(stack_id, block_id).backcasts[-1])
+            plot_block_ts(ax, block)
             ax.set_xlabel("Time")
             ax.set_ylabel("Observations")
-            legend_str = ("{}-{}".format(block.block_type, block.id))
-            ax.legend([legend_str], loc="best")
+            b_legend_str = ("backcast-{}-{}".format(block.block_type, block.id))
+            f_legend_str = ("forecast-{}-{}".format(block.block_type, block.id))
+            ax.legend([b_legend_str, f_legend_str], loc="best")
 
     plt.savefig(path / ("stack_" + run_id + ".png"))
     plt.tight_layout()
     sns.despine()
-    if show:
-        plt.show()
+    plt.show()
 
 
-def plot_block_ts(ax, time_series):
-    time_series = time_series.squeeze().cpu().detach().numpy()
-    ts_range = time_series.shape[1]
-    num_segments = len(time_series)
+def plot_block_ts(ax, block):
+    backcasts = (block.backcasts[-1]).squeeze().cpu().detach().numpy()
+    forecasts = (block.forecasts[-1]).squeeze().cpu().detach().numpy()
+    ts_range = backcasts.shape[1]
+    num_segments = len(backcasts)
     start = 0
     stop = ts_range
     x_values = []
-    y_values = []
-    num_segments = min(100, num_segments)
+    y_backcast_values = []
+    y_forecast_values = []
+    num_segments = min(10, num_segments)
     for i in range(num_segments):
         x = np.arange(start, stop)
         x_values.extend(x.tolist())
-        y = time_series[i, :]
-        y_values.extend(y.tolist())
+        y = backcasts[i, :]
+        y_backcast_values.extend(y.tolist())
+        y_forecast_values.extend(forecasts[i, :].tolist())
         start += ts_range
         stop += ts_range
-
-    ax.plot(np.array(x_values), np.array(y_values), "b-")
+    backcast_color = "b-" if block.block_type == BLOCK_TYPE.GENERAL or block.block_type == BLOCK_TYPE.TREND else "r-"
+    forecast_color = "b--" if block.block_type == BLOCK_TYPE.GENERAL or block.block_type == BLOCK_TYPE.TREND else "r--"
+    x_values = np.array(x_values)
+    y_backcast_values = np.array(y_backcast_values[:-ts_range])
+    y_forecast_values = np.array(y_forecast_values[ts_range:])
+    ax.plot(x_values[:-ts_range], y_backcast_values, backcast_color, x_values[ts_range:], y_forecast_values,
+            forecast_color)
     ax.set_autoscalex_on(True)
     ax.set_autoscaley_on(True)
 
 
-def plot_ts(run_id, original_ts, predicted_ts, ts_labels, cats, path, number_to_plot=1, show=True):
+def plot_ts(run_id, original_ts, predicted_ts, ts_labels, cats, path, number_to_plot=1):
     path.mkdir(parents=True, exist_ok=True)
     fig, axes = plt.subplots(1, number_to_plot, figsize=(17, 4))
     plt.subplots_adjust(hspace=.3)
@@ -201,14 +216,13 @@ def plot_ts(run_id, original_ts, predicted_ts, ts_labels, cats, path, number_to_
         x = np.arange(len(original_ts[i, :]))
         y = original_ts[i, :]
         y_pred = predicted_ts[i, :]
-        ax.plot(x, y, "g-", x, y_pred, "b-")
+        ax.plot(x, y_pred, "r-", x, y, "b-")
         ax.set_xlabel("Time")
         ax.set_ylabel("Observations")
         ts_label = next(fig_label_iter)
         ax.set_title(ts_label + " time Series:" + ts_labels[i])
-        ax.legend(("original", "predicted"))
+        ax.legend(("predicted", "original"))
     plt.savefig(path / ("time_series_" + run_id + ".png"))
     plt.tight_layout()
     sns.despine()
-    if show:
-        plt.show()
+    plt.show()

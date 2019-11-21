@@ -1,15 +1,9 @@
-from enum import Enum
-
 import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
 
-
-class BLOCK_TYPE(Enum):
-    SEASONALITY = "SEASONALITY"
-    TREND = "TREND"
-    GENERAL = "GENERAL"
+from ts.utils.helper_funcs import BLOCK_TYPE
 
 
 def seasonality_model(thetas, t, device):
@@ -54,7 +48,8 @@ def linspace(backcast_length, forecast_length):
 
 class Block(nn.Module):
 
-    def __init__(self, block_type, id, units, thetas_dim, device, backcast_length=10, forecast_length=5, share_thetas=False):
+    def __init__(self, block_type, id, units, thetas_dim, device, backcast_length=10, forecast_length=5,
+                 share_thetas=False):
         super(Block, self).__init__()
         self.block_type = block_type
         self.id = id
@@ -102,7 +97,7 @@ class SeasonalityBlock(Block):
         x = super(SeasonalityBlock, self).forward(x)
         backcast = seasonality_model(self.theta_b_fc(x), self.backcast_linspace, self.device)
         forecast = seasonality_model(self.theta_f_fc(x), self.forecast_linspace, self.device)
-        #print("Adding backcast/forecast for block:{}".format(self.id))
+        # print("Adding backcast/forecast for block:{}".format(self.id))
         self.backcasts.append(backcast)
         self.forecasts.append(forecast)
         return backcast, forecast
@@ -118,7 +113,7 @@ class TrendBlock(Block):
         x = super(TrendBlock, self).forward(x)
         backcast = trend_model(self.theta_b_fc(x), self.backcast_linspace, self.device)
         forecast = trend_model(self.theta_f_fc(x), self.forecast_linspace, self.device)
-        #print("Adding backcast/forecast for block:{}".format(self.id))
+        # print("Adding backcast/forecast for block:{}".format(self.id))
         self.backcasts.append(backcast)
         self.forecasts.append(forecast)
         return backcast, forecast
@@ -182,7 +177,7 @@ class NBeatsNet(nn.Module):
         for block_id in range(self.nb_blocks_per_stack):
             block_init = NBeatsNet.select_block(stack_type)
             if self.share_weights_in_stack and block_id != 0:
-                block = blocks[-1]  # pick up the last one to make the
+                block = blocks[-1]  # pick up the last one to make the stack
             else:
                 block_id_str = str(stack_id) + "_" + str(block_id)
                 print("Creating block:{}".format(block_id_str))
