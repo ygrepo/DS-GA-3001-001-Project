@@ -55,7 +55,11 @@ def save(file_path, model, optimiser, run_id, add_run_id=False):
 def load(file_path, model, optimiser):
     model_path = file_path / "model.pyt"
     if model_path.exists():
-        checkpoint = torch.load(model_path)
+        if torch.cuda.is_available():
+            map_location = lambda storage, loc: storage.cuda()
+        else:
+            map_location = "cpu"
+        checkpoint = torch.load(model_path, map_location=map_location)
         model.load_state_dict(checkpoint["model_state_dict"])
         optimiser.load_state_dict(checkpoint["optimizer_state_dict"])
         print(f"Restored checkpoint from {model_path}.")

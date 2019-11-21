@@ -27,11 +27,11 @@ def get_config(interval):
         "print_output_stats": 3,
         "lr_anneal_rate": 0.5,
         "lr_anneal_step": 5,
-        "sample": False,
-        "reload": False,
+        "sample": True,
+        "reload": True,
         "add_run_id": False,
-        "save_model": True,
-        "plot_ts": False
+        "save_model": False,
+        "plot_ts": True
     }
 
     if interval == "Quarterly":
