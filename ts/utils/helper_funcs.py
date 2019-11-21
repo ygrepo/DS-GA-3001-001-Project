@@ -167,6 +167,7 @@ def plot_stacks(run_id, path, model):
             ax.legend([b_legend_str, f_legend_str], loc="best")
 
     plt.savefig(path / ("stack_" + run_id + ".png"))
+
     plt.tight_layout()
     sns.despine()
     plt.show()
