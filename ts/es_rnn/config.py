@@ -29,7 +29,7 @@ def get_config(interval):
         "lr_anneal_step": 5,
         "sample": True,
         "reload": False,
-        "add_run_id": True,
+        "add_run_id": False,
         "save_model": True,
         "plot_ts": True
     }
@@ -89,7 +89,6 @@ def get_config(interval):
         })
     elif interval == "Weekly":
         config.update({
-            #     RUNTIME PARAMETERS
             "chop_val": 25,
             "variable": "Weekly",
             "dilations": ((1, 14), (14, 28)),
@@ -103,7 +102,6 @@ def get_config(interval):
         })
     elif interval == "Hourly":
         config.update({
-            #     RUNTIME PARAMETERS
             "chop_val": 25,
             "variable": "Hourly",
             "dilations": ((1, 24), (24, 48)),

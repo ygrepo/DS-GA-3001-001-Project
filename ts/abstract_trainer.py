@@ -4,7 +4,6 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.nn import SmoothL1Loss, MSELoss
 
 from ts.utils.helper_funcs import NBEATS_MODEL_NAME, load, save, plot_stacks
 from ts.utils.logger import Logger
@@ -28,11 +27,11 @@ class BaseTrainer(nn.Module):
                                                          gamma=config["lr_anneal_rate"])
         self.criterion = PinballLoss(self.config["training_tau"],
                                      self.config["output_size"] * self.config["batch_size"], self.config["device"])
-        #self.criterion = SmoothL1Loss()
+        # self.criterion = SmoothL1Loss()
         self.epochs = 0
         self.max_epochs = config["num_of_train_epochs"]
         if sampling:
-           self.max_epochs = config["num_of_train_epochs_sampling"]
+            self.max_epochs = config["num_of_train_epochs_sampling"]
         self.run_id = str(run_id)
         self.add_run_id = add_run_id
         self.prod_str = "prod" if config["prod"] else "dev"
@@ -42,6 +41,9 @@ class BaseTrainer(nn.Module):
                 "train%s%s%s" % (self.config["variable"], self.prod_str, self.run_id)))
         self.log = Logger(logger_path)
         self.reload = reload
+
+    def plot_ts_enabled(self):
+        return self.config["plot_ts"] and (self.config["sample_ids"] or self.config["sample"])
 
     def train_epochs(self):
         max_loss = 1e8
@@ -62,13 +64,13 @@ class BaseTrainer(nn.Module):
                 file_path.mkdir(parents=True, exist_ok=True)
                 with open(file_path_validation_loss, "w") as f:
                     f.write("epoch,training_loss,validation_loss\n")
-            if self.config["plot_ts"] and e == self.max_epochs - 1 and self.model_name == NBEATS_MODEL_NAME:
+            if e == self.max_epochs - 1 and self.model_name == NBEATS_MODEL_NAME and self.plot_ts_enabled():
                 plot_stacks(self.run_id, self.figure_path, self.model)
             epoch_val_loss = self.val(file_path)
             with open(file_path_validation_loss, "a") as f:
                 f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
             self.epochs += 1
-        if self.config["plot_ts"]:
+        if self.plot_ts_enabled():
             self.plot(testing=True)
         print("Total Training in mins: %5.2f" % ((time.time() - start_time) / 60))
 

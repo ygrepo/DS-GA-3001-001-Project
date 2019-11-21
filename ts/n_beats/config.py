@@ -27,9 +27,9 @@ def get_config(interval):
         "lr_anneal_rate": 0.5,
         "lr_anneal_step": 5,
         "sample": True,
-        "reload": False,
+        "reload": True,
         "add_run_id": False,
-        "save_model": True,
+        "save_model": False,
         "plot_ts": True
     }
 
