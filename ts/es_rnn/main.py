@@ -28,7 +28,7 @@ LOG_DIR = Path("logs/esrnn")
 FIGURE_PATH = Path("figures-temp/esrnn")
 
 print("loading config")
-config = get_config("Monthly")
+config = get_config("Daily")
 
 print("loading data")
 info = pd.read_csv(str(BASE_DIR / "M4info.csv"))
