@@ -51,13 +51,27 @@ class BaseTrainer(nn.Module):
         file_path = Path(".") / ("models/" + self.model_name)
         if self.reload:
             load(file_path, self.model, self.optimizer)
+        max_loss_repeat = 3
+        loss_repeat_counter = 1
+        prev_loss = float("-inf")
         for e in range(self.max_epochs):
             epoch_loss = self.train()
+
             if self.config["save_model"] and epoch_loss < max_loss:
                 print("Loss decreased, saving model!")
                 file_path = Path(".") / ("models/" + self.model_name)
                 save(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
                 max_loss = epoch_loss
+
+            if epoch_loss >= prev_loss:
+                loss_repeat_counter +=1
+                if loss_repeat_counter >= max_loss_repeat:
+                    print("Loss not decreasing for last {} times".format(loss_repeat_counter))
+                    break
+                else:
+                    loss_repeat_counter += 1
+                    prev_loss = epoch_loss
+
             file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
             file_path_validation_loss = file_path / "validation_losses.csv"
             if e == 0:
