@@ -80,7 +80,7 @@ class ESRNNTrainer(BaseTrainer):
 
             hold_out_loss = float(hold_out_loss.detach().cpu())
             print("============== HOLD-OUT-LOSS ==============")
-            print("hold_out_loss:{:5.2f}".format(hold_out_loss))
+            print("hold_out_loss:{:8.4f}".format(hold_out_loss))
 
             results["hold_out_loss"] = hold_out_loss
             self.log_values(results)
