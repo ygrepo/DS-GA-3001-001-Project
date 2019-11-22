@@ -47,7 +47,7 @@ class BaseTrainer(nn.Module):
         return self.config["plot_ts"] and (self.config["sample_ids"] or self.config["sample"])
 
     def save_model_enabled(self):
-        return self.config["save_model"]
+        return self.config["save_model"] == SAVE_LOAD_TYPE.MODEL or self.config["save_model"] == SAVE_LOAD_TYPE.MODEL_PARAMETERS
 
     def train_epochs(self):
         max_loss = 1e8
@@ -72,14 +72,14 @@ class BaseTrainer(nn.Module):
                     save_model_parameters(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
                 max_loss = epoch_loss
 
-            if isclose(epoch_loss, prev_loss, rel_tol=1e-4):
+            if isclose(epoch_loss, prev_loss, rel_tol=1e-3):
                 loss_repeat_counter += 1
                 if loss_repeat_counter >= max_loss_repeat:
                     print("Loss not decreasing for last {} times".format(loss_repeat_counter))
                     break
                 else:
                     loss_repeat_counter += 1
-                    prev_loss = epoch_loss
+            prev_loss = epoch_loss
 
             file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
             file_path_validation_loss = file_path / "validation_losses.csv"

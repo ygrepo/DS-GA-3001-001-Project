@@ -8,6 +8,7 @@ import torch
 
 import cmath
 
+BENCHMARK_MODEL_NAME = "benchmark"
 NBEATS_MODEL_NAME = "nbeats"
 ESRNN_MODEL_NAME = "esrnn"
 
@@ -323,6 +324,7 @@ def isclose(a,
         # would otherwise have an infinite relative tolerance.
         return False
     diff = abs(b - a)
+    print("Diff:{:8.5f}-{:8.5f}-{:8.5f}".format(diff, abs(rel_tol * b),  abs(rel_tol * a)))
     if method == "asymmetric":
         return (diff <= abs(rel_tol * b)) or (diff <= abs_tol)
     elif method == "strong":
