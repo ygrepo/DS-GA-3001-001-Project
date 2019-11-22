@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 from ts.utils.helper_funcs import NBEATS_MODEL_NAME, load_model_parameters, load_model, save_model, \
-    save_model_parameters, plot_stacks, SAVE_LOAD_TYPE
+    save_model_parameters, plot_stacks, SAVE_LOAD_TYPE, isclose
 from ts.utils.logger import Logger
 from ts.utils.loss_modules import PinballLoss
 
@@ -72,7 +72,7 @@ class BaseTrainer(nn.Module):
                     save_model_parameters(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
                 max_loss = epoch_loss
 
-            if epoch_loss >= prev_loss:
+            if isclose(epoch_loss, prev_loss, rel_tol=1e-4):
                 loss_repeat_counter += 1
                 if loss_repeat_counter >= max_loss_repeat:
                     print("Loss not decreasing for last {} times".format(loss_repeat_counter))
