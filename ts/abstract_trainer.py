@@ -5,14 +5,15 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ts.utils.helper_funcs import NBEATS_MODEL_NAME, load, save, plot_stacks
+from ts.utils.helper_funcs import NBEATS_MODEL_NAME, load_model_parameters, load_model, save_model, \
+    save_model_parameters, plot_stacks, SAVE_LOAD_TYPE
 from ts.utils.logger import Logger
 from ts.utils.loss_modules import PinballLoss
 
 
 class BaseTrainer(nn.Module):
     def __init__(self, model_name, model, dataloader, run_id, add_run_id, config, ohe_headers, csv_path, figure_path,
-                 sampling=False, reload=False):
+                 sampling=False, reload=SAVE_LOAD_TYPE.NO_ACTION):
         super(BaseTrainer, self).__init__()
         self.model_name = model_name
         self.model = model.to(config["device"])
@@ -45,26 +46,34 @@ class BaseTrainer(nn.Module):
     def plot_ts_enabled(self):
         return self.config["plot_ts"] and (self.config["sample_ids"] or self.config["sample"])
 
+    def save_model_enabled(self):
+        return self.config["save_model"]
+
     def train_epochs(self):
         max_loss = 1e8
         start_time = time.time()
         file_path = Path(".") / ("models/" + self.model_name)
-        if self.reload:
-            load(file_path, self.model, self.optimizer)
+        if self.reload == SAVE_LOAD_TYPE.MODEL:
+            load_model(file_path)
+        if self.reload == SAVE_LOAD_TYPE.MODEL_PARAMETERS:
+            load_model_parameters(file_path, self.model, self.optimizer)
         max_loss_repeat = 3
         loss_repeat_counter = 1
         prev_loss = float("-inf")
         for e in range(self.max_epochs):
             epoch_loss = self.train()
 
-            if self.config["save_model"] and epoch_loss < max_loss:
+            if self.save_model_enabled() and epoch_loss < max_loss:
                 print("Loss decreased, saving model!")
                 file_path = Path(".") / ("models/" + self.model_name)
-                save(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
+                if self.config["save_model"] == SAVE_LOAD_TYPE.MODEL:
+                    save_model(file_path, self.model, self.run_id)
+                elif self.config["save_model"] == SAVE_LOAD_TYPE.MODEL_PARAMETERS:
+                    save_model_parameters(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
                 max_loss = epoch_loss
 
             if epoch_loss >= prev_loss:
-                loss_repeat_counter +=1
+                loss_repeat_counter += 1
                 if loss_repeat_counter >= max_loss_repeat:
                     print("Loss not decreasing for last {} times".format(loss_repeat_counter))
                     break

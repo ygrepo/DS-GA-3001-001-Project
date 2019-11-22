@@ -2,6 +2,8 @@ from math import sqrt
 
 import torch
 
+from ts.utils.helper_funcs import SAVE_LOAD_TYPE
+
 
 def get_config(interval):
     config = {
@@ -14,7 +16,7 @@ def get_config(interval):
         "learning_rate": 1e-3,
         "learning_rates": ((10, 1e-4)),
         "num_of_train_epochs": 2,
-        "num_of_train_epochs_sampling": 15,
+        "num_of_train_epochs_sampling": 1,
         "num_of_categories": 6,  # in data provided
         "batch_size": 1024,
         "gradient_clipping": 20,
@@ -28,9 +30,9 @@ def get_config(interval):
         "lr_anneal_rate": 0.5,
         "lr_anneal_step": 5,
         "sample": True,
-        "reload": True,
+        "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
-        "save_model": False,
+        "save_model": SAVE_LOAD_TYPE.NO_ACTION,
         "plot_ts": True
     }
 
@@ -44,8 +46,8 @@ def get_config(interval):
             "input_size": 4,
             "output_size": 8,
             "level_variability_penalty": 80,
-            "sample_ids": [],
-            # "sample_ids": ["Q11588"],
+            #"sample_ids": [],
+             "sample_ids": ["Q23"],
         })
     elif interval == "Monthly":
         config.update({

@@ -10,6 +10,12 @@ NBEATS_MODEL_NAME = "nbeats"
 ESRNN_MODEL_NAME = "esrnn"
 
 
+class SAVE_LOAD_TYPE(Enum):
+    NO_ACTION = "NONE"
+    MODEL = "MODEL"
+    MODEL_PARAMETERS = "MODEL_PARAMETERS"
+
+
 class BLOCK_TYPE(Enum):
     SEASONALITY = "SEASONALITY"
     TREND = "TREND"
@@ -39,7 +45,29 @@ def unpad_sequence(padded_sequence, lens):
     return seqs
 
 
-def save(file_path, model, optimiser, run_id, add_run_id=False):
+def save_model(file_path, model, run_id, add_run_id=False):
+    file_path.mkdir(parents=True, exist_ok=True)
+    if add_run_id:
+        model_path = file_path / ("model_" + run_id + ".pyt")
+    else:
+        model_path = file_path / ("model.pyt")
+
+    torch.save(model, model_path)
+
+
+def load_model(file_path):
+    model_path = file_path / "model.pyt"
+    if model_path.exists():
+        if torch.cuda.is_available():
+            map_location = lambda storage, loc: storage.cuda()
+        else:
+            map_location = "cpu"
+        model = torch.load(model_path, map_location=map_location)
+        print(f"Restored checkpoint from {model_path}.")
+        return model
+
+
+def save_model_parameters(file_path, model, optimiser, run_id, add_run_id=False):
     file_path.mkdir(parents=True, exist_ok=True)
     if add_run_id:
         model_path = file_path / ("model_" + run_id + ".pyt")
@@ -52,7 +80,7 @@ def save(file_path, model, optimiser, run_id, add_run_id=False):
     }, model_path)
 
 
-def load(file_path, model, optimiser):
+def load_model_parameters(file_path, model, optimiser):
     model_path = file_path / "model.pyt"
     if model_path.exists():
         if torch.cuda.is_available():

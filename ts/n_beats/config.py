@@ -3,6 +3,7 @@ from math import sqrt
 import torch
 
 from ts.n_beats.model import BLOCK_TYPE
+from ts.utils.helper_funcs import SAVE_LOAD_TYPE
 
 
 def get_config(interval):
@@ -27,9 +28,9 @@ def get_config(interval):
         "lr_anneal_rate": 0.5,
         "lr_anneal_step": 5,
         "sample": False,
-        "reload": False,
+        "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
-        "save_model": False,
+        "save_model": SAVE_LOAD_TYPE.NO_ACTION,
         "plot_ts": False
     }
 
