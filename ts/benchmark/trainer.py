@@ -19,6 +19,11 @@ class Trainer(BaseTrainer):
         self.backcast_length = backcast_length
 
     def train_batch(self, train, val, test, info_cat, idx):
+
+        self.model.covar_module.initialize_from_data(train, val)
+        self.model.train()
+        self.likelihood.train()
+
         self.optimizer.zero_grad()
 
         window_input_list = []

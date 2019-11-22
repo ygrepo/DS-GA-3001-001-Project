@@ -5,14 +5,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ts.utils.helper_funcs import NBEATS_MODEL_NAME, load_model_parameters, load_model, save_model, \
+from ts.utils.helper_funcs import MODEL_TYPE, load_model_parameters, load_model, save_model, \
     save_model_parameters, plot_stacks, SAVE_LOAD_TYPE, isclose
 from ts.utils.logger import Logger
-from ts.utils.loss_modules import PinballLoss
 
 
 class BaseTrainer(nn.Module):
-    def __init__(self, model_name, model, dataloader, run_id, add_run_id, config, ohe_headers, csv_path, figure_path,
+    def __init__(self, model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, ohe_headers,
+                 csv_path, figure_path,
                  sampling=False, reload=SAVE_LOAD_TYPE.NO_ACTION):
         super(BaseTrainer, self).__init__()
         self.model_name = model_name
@@ -21,13 +21,12 @@ class BaseTrainer(nn.Module):
         self.data_loader = dataloader
         self.sampling = sampling
         self.ohe_headers = ohe_headers
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=config["learning_rate"])
+        self.optimizer = optimizer
         # self.optimizer = torch.optim.ASGD(self.model.parameters(), lr=config["learning_rate"])
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
                                                          step_size=config["lr_anneal_step"],
                                                          gamma=config["lr_anneal_rate"])
-        self.criterion = PinballLoss(self.config["training_tau"],
-                                     self.config["output_size"] * self.config["batch_size"], self.config["device"])
+        self.criterion = criterion
         # self.criterion = SmoothL1Loss()
         self.epochs = 0
         self.max_epochs = config["num_of_train_epochs"]
@@ -47,7 +46,8 @@ class BaseTrainer(nn.Module):
         return self.config["plot_ts"] and (self.config["sample_ids"] or self.config["sample"])
 
     def save_model_enabled(self):
-        return self.config["save_model"] == SAVE_LOAD_TYPE.MODEL or self.config["save_model"] == SAVE_LOAD_TYPE.MODEL_PARAMETERS
+        return self.config["save_model"] == SAVE_LOAD_TYPE.MODEL or self.config[
+            "save_model"] == SAVE_LOAD_TYPE.MODEL_PARAMETERS
 
     def train_epochs(self):
         max_loss = 1e8
@@ -72,7 +72,7 @@ class BaseTrainer(nn.Module):
                     save_model_parameters(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
                 max_loss = epoch_loss
 
-            if isclose(epoch_loss, prev_loss, rel_tol=1e-3):
+            if isclose(epoch_loss, prev_loss, rel_tol=1e-4):
                 loss_repeat_counter += 1
                 if loss_repeat_counter >= max_loss_repeat:
                     print("Loss not decreasing for last {} times".format(loss_repeat_counter))
@@ -87,7 +87,7 @@ class BaseTrainer(nn.Module):
                 file_path.mkdir(parents=True, exist_ok=True)
                 with open(file_path_validation_loss, "w") as f:
                     f.write("epoch,training_loss,validation_loss\n")
-            if e == self.max_epochs - 1 and self.model_name == NBEATS_MODEL_NAME and self.plot_ts_enabled():
+            if e == self.max_epochs - 1 and self.model_name == MODEL_TYPE.NBEATS and self.plot_ts_enabled():
                 plot_stacks(self.run_id, self.figure_path, self.model)
             epoch_val_loss = self.val(file_path)
             with open(file_path_validation_loss, "a") as f:

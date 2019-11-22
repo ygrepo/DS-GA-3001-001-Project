@@ -19,7 +19,7 @@ class SeriesDataset(Dataset):
                           range(len(dataTrain))]  # ALREADY MASKED IN CHOP FUNCTION
         self.dataVal = [torch.tensor(dataVal[i], dtype=torch.float32) for i in range(len(dataVal)) if mask[i]]
         self.dataTest = [torch.tensor(dataTest[i], dtype=torch.float32) for i in range(len(dataTest)) if mask[i]]
-        self.filtered_ts_labels = dict([reversed(i) for i in ts_labels.items() if mask[i[1]]])
+        self.filtered_ts_labels = dict([i for i in ts_labels.items() if mask[i[1]]])
         self.ts_labels = dict([reversed(i) for i in ts_labels.items()])
         self.device = device
 

@@ -1,3 +1,4 @@
+import cmath
 import random
 from enum import Enum
 
@@ -6,11 +7,11 @@ import numpy as np
 import seaborn as sns
 import torch
 
-import cmath
 
-BENCHMARK_MODEL_NAME = "benchmark"
-NBEATS_MODEL_NAME = "nbeats"
-ESRNN_MODEL_NAME = "esrnn"
+class MODEL_TYPE(Enum):
+    NBEATS = "nbeats"
+    ESRNN = "esrnn"
+    BENCHMARK = "benchmark"
 
 
 class SAVE_LOAD_TYPE(Enum):
@@ -324,7 +325,7 @@ def isclose(a,
         # would otherwise have an infinite relative tolerance.
         return False
     diff = abs(b - a)
-    print("Diff:{:8.5f}-{:8.5f}-{:8.5f}".format(diff, abs(rel_tol * b),  abs(rel_tol * a)))
+    print("Diff:{:8.5f}-{:8.5f}-{:8.5f}".format(diff, abs(rel_tol * b), abs(rel_tol * a)))
     if method == "asymmetric":
         return (diff <= abs(rel_tol * b)) or (diff <= abs_tol)
     elif method == "strong":
@@ -337,7 +338,7 @@ def isclose(a,
                 (diff <= abs_tol))
     elif method == "average":
         return ((diff <= abs(rel_tol * (a + b) / 2) or
-                (diff <= abs_tol)))
+                 (diff <= abs_tol)))
     else:
         raise ValueError('method must be one of:'
                          ' "asymmetric", "strong", "weak", "average"')

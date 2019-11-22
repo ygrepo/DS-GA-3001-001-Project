@@ -11,10 +11,11 @@ from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
 
 
 class Trainer(BaseTrainer):
-    def __init__(self, model_name, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length,
+    def __init__(self, model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, forecast_length,
+                 backcast_length,
                  ohe_headers,
                  csv_path, figure_path, sampling, reload):
-        super().__init__(model_name, model, dataloader, run_id, add_run_id, config, ohe_headers,
+        super().__init__(model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, ohe_headers,
                          csv_path, figure_path, sampling, reload)
         self.forecast_length = forecast_length
         self.backcast_length = backcast_length
@@ -45,7 +46,6 @@ class Trainer(BaseTrainer):
         self.optimizer.step()
         self.scheduler.step()
         return float(loss)
-
 
     def val(self, file_path, testing=False):
         self.model.eval()

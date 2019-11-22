@@ -11,9 +11,10 @@ from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
 
 
 class ESRNNTrainer(BaseTrainer):
-    def __init__(self, model_name, model, dataloader, run_id, add_run_id, config, ohe_headers, csv_path, figure_path,
+    def __init__(self, model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, ohe_headers,
+                 csv_path, figure_path,
                  sampling, reload):
-        super().__init__(model_name, model, dataloader, run_id, add_run_id, config, ohe_headers,
+        super().__init__(model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, ohe_headers,
                          csv_path, figure_path, sampling, reload)
 
     def train_batch(self, train, val, test, info_cat, idx):
@@ -31,6 +32,7 @@ class ESRNNTrainer(BaseTrainer):
         return float(loss)
 
     def val(self, file_path):
+        print("Validation")
         self.model.eval()
         with torch.no_grad():
             acts = []
