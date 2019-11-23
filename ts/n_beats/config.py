@@ -27,10 +27,10 @@ def get_config(interval):
         "print_output_stats": 3,
         "lr_anneal_rate": 0.5,
         "lr_anneal_step": 5,
-        "sample": False,
-        "reload": SAVE_LOAD_TYPE.NO_ACTION,
+        "sample": True,
+        "reload": SAVE_LOAD_TYPE.MODEL_PARAMETERS,
         "add_run_id": False,
-        "save_model": SAVE_LOAD_TYPE.MODEL_PARAMETERS,
+        "save_model": SAVE_LOAD_TYPE.NO_ACTION,
         "plot_ts": True,
     }
 
@@ -111,8 +111,8 @@ def get_config(interval):
             "variable": "Hourly",
             "seasonality": 24,
             "output_size": 48,
-            # "sample_ids": [],
-            "sample_ids": ["H344"],
+            "sample_ids": [],
+            #"sample_ids": ["H344"],
         })
     else:
         print("I dont have that config. :(")
