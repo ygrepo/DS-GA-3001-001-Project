@@ -63,7 +63,6 @@ def get_config(interval):
         })
     elif interval == "Daily":
         config.update({
-            #     RUNTIME PARAMETERS
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
@@ -78,7 +77,6 @@ def get_config(interval):
     elif interval == "Yearly":
 
         config.update({
-            #     RUNTIME PARAMETERS
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
             "thetas_dims": [3, 8],
             "nb_blocks_per_stack": 3,
@@ -92,7 +90,6 @@ def get_config(interval):
         })
     elif interval == "Weekly":
         config.update({
-            #     RUNTIME PARAMETERS
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
@@ -101,12 +98,11 @@ def get_config(interval):
             "variable": "Weekly",
             "seasonality": 1,
             "output_size": 13,
-            "sample_ids": [],
-            # "sample_ids": ["W246"],
+            #"sample_ids": [],
+             "sample_ids": ["W246"],
         })
     elif interval == "Hourly":
         config.update({
-            #     RUNTIME PARAMETERS
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
