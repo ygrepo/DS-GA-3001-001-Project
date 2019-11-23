@@ -87,8 +87,8 @@ def get_config(interval):
             "variable": "Yearly",
             "seasonality": 1,
             "output_size": 6,
-            # "sample_ids": [],
-            "sample_ids": ["Y3974"],
+            "sample_ids": [],
+            #"sample_ids": ["Y3974"],
         })
     elif interval == "Weekly":
         config.update({
