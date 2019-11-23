@@ -28,5 +28,5 @@ figures-temp
 logs/
 
 # Ignore models
-# models/
+models/
 
