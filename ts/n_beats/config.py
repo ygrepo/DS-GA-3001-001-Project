@@ -28,7 +28,7 @@ def get_config(interval):
         "lr_anneal_rate": 0.5,
         "lr_anneal_step": 5,
         "sample": True,
-        "reload": SAVE_LOAD_TYPE.MODEL,
+        "reload": SAVE_LOAD_TYPE.MODEL_PARAMETERS,
         "add_run_id": False,
         "save_model": SAVE_LOAD_TYPE.NO_ACTION,
         "plot_ts": True,
@@ -44,7 +44,7 @@ def get_config(interval):
             "variable": "Quarterly",
             "seasonality": 4,
             "output_size": 8,
-            "sample_ids": [],
+            #"sample_ids": [],
             "sample_ids": ["Q24000"],
         })
     elif interval == "Monthly":
@@ -72,8 +72,8 @@ def get_config(interval):
             "variable": "Daily",
             "seasonality": 7,
             "output_size": 14,
-            "sample_ids": [],
-            # "sample_ids": ["D404"],
+            #"sample_ids": [],
+            "sample_ids": ["D404"],
         })
     elif interval == "Yearly":
 

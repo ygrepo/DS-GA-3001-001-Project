@@ -25,7 +25,7 @@ def main():
     FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.NBEATS.value)
 
     print("Loading config")
-    config = get_config("Monthly")
+    config = get_config("Quarterly")
     print("Frequency:{}".format(config["variable"]))
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
