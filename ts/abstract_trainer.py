@@ -43,7 +43,7 @@ class BaseTrainer(nn.Module):
         self.reload = reload
 
     def plot_ts_enabled(self):
-        return self.config["plot_ts"] and (self.config["sample_ids"] or self.config["sample"])
+        return self.config["plot_ts"] and self.config["sample"]
 
     def save_model_enabled(self):
         return self.config["save_model"] == SAVE_LOAD_TYPE.MODEL or self.config[
@@ -76,6 +76,8 @@ class BaseTrainer(nn.Module):
                 loss_repeat_counter += 1
                 if loss_repeat_counter >= max_loss_repeat:
                     print("Loss not decreasing for last {} times".format(loss_repeat_counter))
+                    if self.model_name == MODEL_TYPE.NBEATS and self.plot_ts_enabled() and self.config["sample_ids"]:
+                        plot_stacks(self.run_id, self.figure_path, self.model)
                     break
                 else:
                     loss_repeat_counter += 1

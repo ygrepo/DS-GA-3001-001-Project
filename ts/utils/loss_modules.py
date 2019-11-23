@@ -56,19 +56,6 @@ class PinballLoss(nn.Module):
 # pb(test1, test2)
 
 
-### sMAPE
-
-# float sMAPE(vector<float>& out_vect, vector<float>& actuals_vect) {
-#   float sumf = 0;
-#   for (unsigned int indx = 0; indx<OUTPUT_SIZE; indx++) {
-#     auto forec = out_vect[indx];
-#     auto actual = actuals_vect[indx];
-#     sumf+=abs(forec-actual)/(abs(forec)+abs(actual));
-#   }
-#   return sumf / OUTPUT_SIZE * 200;
-# }
-
-
 def non_sMAPE(predictions, actuals, output_size):
     sumf = 0
     for i in range(output_size):
@@ -116,22 +103,6 @@ def np_MASE(predictions, actuals, weight, H):
 def np_mase(ts, freq):
     ts = np.array(ts)
     return np.mean(np.abs(ts[freq:] - ts[:-freq]))
-
-### wQuantLoss
-
-# float wQuantLoss(vector<float>& out_vect, vector<float>& actuals_vect) {
-#   float sumf = 0; float suma=0;
-#   for (unsigned int indx = 0; indx<OUTPUT_SIZE; indx++) {
-#     auto forec = out_vect[indx];
-#     auto actual = actuals_vect[indx];
-#     suma+= abs(actual);
-#     if (actual > forec)
-#       sumf = sumf + (actual - forec)*TAU;
-#     else
-#       sumf = sumf + (actual - forec)*(TAU - 1);
-#   }
-#   return sumf / suma * 200;
-# }
 
 def wQuantLoss(predictions, actuals, output_size, training_tau):
     sumf = 0

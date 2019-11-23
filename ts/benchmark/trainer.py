@@ -7,45 +7,26 @@ import torch.nn as nn
 
 from ts.abstract_trainer import BaseTrainer
 from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
+from gpytorch import mlls
 
 
 class Trainer(BaseTrainer):
-    def __init__(self, model_name, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length,
-                 ohe_headers,
-                 csv_path, figure_path, sampling, reload):
-        super().__init__(model_name, model, dataloader, run_id, add_run_id, config, ohe_headers,
+    def __init__(self, model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config,
+                 ohe_headers, csv_path, figure_path, sampling, reload):
+        super().__init__(model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, ohe_headers,
                          csv_path, figure_path, sampling, reload)
-        self.forecast_length = forecast_length
-        self.backcast_length = backcast_length
 
     def train_batch(self, train, val, test, info_cat, idx):
 
         self.model.covar_module.initialize_from_data(train, val)
         self.model.train()
-        self.likelihood.train()
+        self.model.likelihood.train()
+        self.mll = mlls.ExactMarginalLogLikelihood(self.model.likelihood, self.model)
 
         self.optimizer.zero_grad()
-
-        window_input_list = []
-        window_output_list = []
-        ts_len = train.shape[1]
-        for i in range(self.backcast_length, ts_len - self.forecast_length):
-            window_input_list.append(train[:, i - self.backcast_length:i])
-            window_output_list.append(train[:, i:i + self.forecast_length])
-
-        if len(window_output_list) == 1:
-            window_input = torch.cat([i.unsqueeze(1) for i in window_input_list], dim=0)
-            window_output = torch.cat([i.unsqueeze(1) for i in window_output_list], dim=0)
-        else:
-            window_input = torch.cat([i.unsqueeze(0) for i in window_input_list], dim=0)
-            window_input = window_input.transpose(0, 1)
-            window_output = torch.cat([i.unsqueeze(0) for i in window_output_list], dim=0)
-            window_output = window_output.transpose(0, 1)
-
-        backcast, forecast = self.model(window_input)
-        loss = self.criterion(forecast, window_output)
+        forecast = self.model(train)
+        loss = -self.mll(forecast, val)
         loss.backward()
-        nn.utils.clip_grad_value_(self.model.parameters(), self.config["gradient_clipping"])
         self.optimizer.step()
         self.scheduler.step()
         return float(loss)

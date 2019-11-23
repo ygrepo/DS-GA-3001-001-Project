@@ -4,6 +4,7 @@ from enum import Enum
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import torch
 
@@ -141,7 +142,7 @@ def create_datasets(train_file_location, test_file_location, output_size, sample
     train, train_idx = read_file(train_file_location, sample_ids, sample, sampling_size)
     if sample and sample_ids:
         train, train_idx = filter_sample_ids(train, train_idx, sample_ids)
-    print("After chopping: train:{}".format(len(train)))
+    print("train:{}".format(len(train)))
 
     test, test_idx = read_file(test_file_location, sample_ids, sample, sampling_size)
     if sample and sample_ids:
@@ -159,12 +160,46 @@ def create_datasets(train_file_location, test_file_location, output_size, sample
     return train, train_idx, val, test, test_idx
 
 
+def generate_timeseries_length_stats(data):
+    df = pd.DataFrame({"data": data.tolist()})
+    df["size"] = [len(x) for x in data]
+    df.drop(["data"], axis=1, inplace=True)
+    print(df.describe())
+
+
+def determine_chop_value(data, backcast_length, forecast_length):
+    ts_lengths = []
+    for i in range(len(data)):
+        ts = data[i]
+        length = len(ts) - (forecast_length + backcast_length)
+        if length > 0:
+            ts_lengths.append(len(ts))
+        # print(len(ts), length)
+    if ts_lengths:
+        #return np.quantile(ts_lengths, 0.25).astype(dtype=int)
+        return np.amin(np.array(ts_lengths)).astype(dtype=int)
+    return -1
+
+
 def chop_series(train, chop_val):
     # CREATE MASK FOR VALUES TO BE CHOPPED
     train_len_mask = [True if len(i) >= chop_val else False for i in train]
     # FILTER AND CHOP TRAIN
     train = [train[i][-chop_val:] for i in range(len(train)) if train_len_mask[i]]
     return train, train_len_mask
+
+
+def filter_timeseries(info,variable, sample, ts_labels, data_train, chop_val, data_val, data_test):
+    data_train, mask = chop_series(data_train, chop_val)
+    if sample:
+        info = info[(info["M4id"].isin(ts_labels.keys())) & (info["SP"] == variable)]
+    data_train = [data_train[i] for i in range(len(data_train))]
+    data_val = [data_val[i] for i in range(len(data_val)) if mask[i]]
+    data_test = [data_test[i] for i in range(len(data_test)) if mask[i]]
+    data_infocat_ohe = pd.get_dummies(info[info["SP"] == variable]["category"])
+    data_infocat_headers = np.array([i for i in data_infocat_ohe.columns.values])
+    data_info_cat = torch.from_numpy(data_infocat_ohe[mask].values).float()
+    return data_train, data_val, data_test, data_infocat_ohe, data_infocat_headers, data_info_cat
 
 
 # Reproducibility

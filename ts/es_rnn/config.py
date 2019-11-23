@@ -47,7 +47,7 @@ def get_config(interval):
             "output_size": 8,
             "level_variability_penalty": 80,
             #"sample_ids": [],
-            "sample_ids": ["Q61"],
+            "sample_ids": ["Q66"],
         })
     elif interval == "Monthly":
         config.update({

@@ -5,7 +5,7 @@ import pandas as pd
 from torch.utils.data import DataLoader
 
 from ts.n_beats.config import get_config
-from ts.n_beats.data_loading import SeriesDataset
+from ts.utils.data_loading import SeriesDataset
 from ts.n_beats.model import NBeatsNet
 from ts.n_beats.trainer import Trainer
 from ts.utils.helper_funcs import BENCHMARK_MODEL_NAME, set_seed, create_datasets
@@ -55,7 +55,7 @@ def main():
     reload = config["reload"]
     add_run_id = config["add_run_id"]
     trainer = Trainer(NBEATS_MODEL_NAME, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length,
-                      ohe_headers=dataset.dataInfoCatHeaders, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
+                      ohe_headers=dataset.data_info_cat_headers, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
                       sampling=sample, reload=reload)
     trainer.train_epochs()
 

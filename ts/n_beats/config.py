@@ -14,7 +14,7 @@ def get_config(interval):
         "training_percentile": 45,
         "learning_rate": 1e-3,
         "learning_rates": ((10, 1e-4)),
-        "num_of_train_epochs": 200,
+        "num_of_train_epochs": 100,
         "num_of_train_epochs_sampling": 100,
         "num_of_categories": 6,  # in data provided
         "batch_size": 1024,
@@ -30,8 +30,8 @@ def get_config(interval):
         "sample": False,
         "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
-        "save_model": SAVE_LOAD_TYPE.MODEL,
-        "plot_ts": False,
+        "save_model": SAVE_LOAD_TYPE.NO_ACTION,
+        "plot_ts": True,
     }
 
     if interval == "Quarterly":
@@ -44,9 +44,9 @@ def get_config(interval):
             "variable": "Quarterly",
             "seasonality": 4,
             "output_size": 8,
-            # "sample_ids": [],
-            # "sample_ids": ["Q11588"],
-            "sample_ids": ["Q66"],
+            "sample_ids": [],
+            "sample_ids": ["Q11588"],
+            "sample_ids": ["Q24000"],
         })
     elif interval == "Monthly":
         config.update({
