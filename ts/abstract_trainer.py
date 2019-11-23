@@ -54,7 +54,7 @@ class BaseTrainer(nn.Module):
         start_time = time.time()
         file_path = Path(".") / ("models/" + self.model_name)
         if self.reload == SAVE_LOAD_TYPE.MODEL:
-            load_model(file_path)
+            self.model = load_model(file_path)
         if self.reload == SAVE_LOAD_TYPE.MODEL_PARAMETERS:
             load_model_parameters(file_path, self.model, self.optimizer)
         max_loss_repeat = 3
@@ -62,6 +62,7 @@ class BaseTrainer(nn.Module):
         prev_loss = float("-inf")
         for e in range(self.max_epochs):
             epoch_loss = self.train()
+            #epoch_loss = 0
 
             if self.save_model_enabled() and epoch_loss < max_loss:
                 print("Loss decreased, saving model!")
@@ -76,7 +77,7 @@ class BaseTrainer(nn.Module):
                 loss_repeat_counter += 1
                 if loss_repeat_counter >= max_loss_repeat:
                     print("Loss not decreasing for last {} times".format(loss_repeat_counter))
-                    if self.model_name == MODEL_TYPE.NBEATS and self.plot_ts_enabled() and self.config["sample_ids"]:
+                    if self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled() and self.config["sample_ids"]:
                         plot_stacks(self.run_id, self.figure_path, self.model)
                     break
                 else:
@@ -89,7 +90,7 @@ class BaseTrainer(nn.Module):
                 file_path.mkdir(parents=True, exist_ok=True)
                 with open(file_path_validation_loss, "w") as f:
                     f.write("epoch,training_loss,validation_loss\n")
-            if e == self.max_epochs - 1 and self.model_name == MODEL_TYPE.NBEATS and self.plot_ts_enabled():
+            if e == self.max_epochs - 1 and self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled():
                 plot_stacks(self.run_id, self.figure_path, self.model)
             epoch_val_loss = self.val(file_path)
             with open(file_path_validation_loss, "a") as f:

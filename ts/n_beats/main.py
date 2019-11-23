@@ -26,6 +26,7 @@ def main():
 
     print("Loading config")
     config = get_config("Monthly")
+    print("Frequency:{}".format(config["variable"]))
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
 

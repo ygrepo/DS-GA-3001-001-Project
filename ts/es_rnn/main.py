@@ -31,6 +31,7 @@ FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.ESRNN.value)
 
 print("loading config")
 config = get_config("Quarterly")
+print("Frequency:{}".format(config["variable"]))
 
 print("loading data")
 info = pd.read_csv(str(BASE_DIR / "M4info.csv"))

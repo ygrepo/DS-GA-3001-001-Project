@@ -15,7 +15,7 @@ def get_config(interval):
         "learning_rate": 1e-3,
         "learning_rates": ((10, 1e-4)),
         "num_of_train_epochs": 100,
-        "num_of_train_epochs_sampling": 100,
+        "num_of_train_epochs_sampling": 1,
         "num_of_categories": 6,  # in data provided
         "batch_size": 1024,
         "gradient_clipping": 20,
@@ -28,7 +28,7 @@ def get_config(interval):
         "lr_anneal_rate": 0.5,
         "lr_anneal_step": 5,
         "sample": True,
-        "reload": SAVE_LOAD_TYPE.NO_ACTION,
+        "reload": SAVE_LOAD_TYPE.MODEL,
         "add_run_id": False,
         "save_model": SAVE_LOAD_TYPE.NO_ACTION,
         "plot_ts": True,
