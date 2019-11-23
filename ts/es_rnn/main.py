@@ -17,7 +17,7 @@ from ts.utils.helper_funcs import MODEL_TYPE, set_seed, create_datasets, generat
 set_seed(0)
 
 run_id = str(int(time.time()))
-print("Starting run={}, model={} ".format(run_id, MODEL_TYPE.ESRNN))
+print("Starting run={}, model={} ".format(run_id, MODEL_TYPE.ESRNN.value))
 
 try:
     user_paths = os.environ["PYTHONPATH"].split(os.pathsep)
@@ -26,8 +26,8 @@ except KeyError:
     user_paths = []
 
 BASE_DIR = Path("data/raw/")
-LOG_DIR = Path("logs/" + MODEL_TYPE.ESRNN.name)
-FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.ESRNN.name)
+LOG_DIR = Path("logs/" + MODEL_TYPE.ESRNN.value)
+FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.ESRNN.value)
 
 print("loading config")
 config = get_config("Quarterly")
@@ -67,7 +67,7 @@ add_run_id = config["add_run_id"]
 optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
 # criterion = PinballLoss(config["training_tau"], config["output_size"] * config["batch_size"], config["device"])
 criterion = SmoothL1Loss()
-tr = ESRNNTrainer(MODEL_TYPE.ESRNN.name, model, optimizer, criterion, dataloader, run_id, add_run_id, config,
+tr = ESRNNTrainer(MODEL_TYPE.ESRNN.value, model, optimizer, criterion, dataloader, run_id, add_run_id, config,
                   ohe_headers=dataset.data_info_cat_headers,
                   csv_path=LOG_DIR,
                   figure_path=FIGURE_PATH, sampling=sample, reload=reload)

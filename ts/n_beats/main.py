@@ -18,14 +18,14 @@ def main():
     set_seed(0)
 
     run_id = str(int(time.time()))
-    print("Starting run={}, model={} ".format(run_id, MODEL_TYPE.NBEATS))
+    print("Starting run={}, model={} ".format(run_id, MODEL_TYPE.NBEATS.value))
 
     BASE_DIR = Path("data/raw/")
-    LOG_DIR = Path("logs/" + MODEL_TYPE.NBEATS.name)
-    FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.NBEATS.name)
+    LOG_DIR = Path("logs/" + MODEL_TYPE.NBEATS.value)
+    FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.NBEATS.value)
 
     print("Loading config")
-    config = get_config("Quarterly")
+    config = get_config("Monthly")
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
 
@@ -68,7 +68,7 @@ def main():
     add_run_id = config["add_run_id"]
     optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
     criterion = PinballLoss(config["training_tau"], config["output_size"] * config["batch_size"], config["device"])
-    trainer = Trainer(MODEL_TYPE.NBEATS.name, model, optimizer, criterion, dataloader, run_id, add_run_id, config,
+    trainer = Trainer(MODEL_TYPE.NBEATS.value, model, optimizer, criterion, dataloader, run_id, add_run_id, config,
                       forecast_length, backcast_length,
                       ohe_headers=dataset.data_info_cat_headers, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
                       sampling=sample, reload=reload)

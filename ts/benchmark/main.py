@@ -54,7 +54,7 @@ def main():
                       device=config["device"])
     reload = config["reload"]
     add_run_id = config["add_run_id"]
-    trainer = Trainer(NBEATS_MODEL_NAME, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length,
+    trainer = Trainer(NBEATS_MODEL_NAME.name, model, dataloader, run_id, add_run_id, config, forecast_length, backcast_length,
                       ohe_headers=dataset.data_info_cat_headers, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
                       sampling=sample, reload=reload)
     trainer.train_epochs()
