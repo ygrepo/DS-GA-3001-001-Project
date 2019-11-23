@@ -17,7 +17,7 @@ __pycache__
 *.pth
 *-ubyte
 *.pt
-*.png
+#*.png
 imdb
 data/
 
