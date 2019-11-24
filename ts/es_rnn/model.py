@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from ts.es_rnn.DRNN import DRNN
-
+from ts.utils.helper_funcs import plot_levels_seasonalities
 
 class ESRNN(nn.Module):
     def __init__(self, num_series, config):
@@ -34,7 +34,7 @@ class ESRNN(nn.Module):
 
         self.resid_drnn = ResidualDRNN(self.config)
 
-    def forward(self, train, val, test, info_cat, idxs, testing=False):
+    def forward(self, train, val, test, info_cat, idxs, testing=False, debugging=False, figure_path=None):
         # GET THE PER SERIES PARAMETERS
         lev_sms = self.logistic(torch.stack([self.init_lev_sms[idx] for idx in idxs]).squeeze(1))
         seas_sms = self.logistic(torch.stack([self.init_seas_sms[idx] for idx in idxs]).squeeze(1))
@@ -84,6 +84,9 @@ class ESRNN(nn.Module):
             seasonalities_stacked = torch.cat(
                 (seasonalities_stacked, seasonalities_stacked[:, start_seasonality_ext:end_seasonality_ext]),
                 dim=1)
+
+        if debugging:
+            plot_levels_seasonalities(train, levs_stacked, seasonalities_stacked, figure_path)
 
         window_input_list = []
         window_output_list = []

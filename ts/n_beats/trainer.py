@@ -47,7 +47,7 @@ class Trainer(BaseTrainer):
         self.scheduler.step()
         return float(loss)
 
-    def val(self, file_path, testing=False):
+    def val(self, file_path, testing, debugging, figure_path):
         self.model.eval()
         with torch.no_grad():
             acts = []

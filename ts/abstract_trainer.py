@@ -84,27 +84,32 @@ class BaseTrainer(nn.Module):
                     save_model_parameters(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
                 max_loss = epoch_loss
 
+            file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
+            file_path_validation_loss = file_path / "validation_losses.csv"
+
             if isclose(epoch_loss, prev_loss, rel_tol=1e-4):
                 loss_repeat_counter += 1
                 if loss_repeat_counter >= max_loss_repeat:
                     print("Loss not decreasing for last {} times".format(loss_repeat_counter))
-                    if self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled() and self.config[
-                        "sample_ids"]:
+                    if self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled() \
+                            and self.config["sample_ids"]:
                         plot_stacks(self.run_id, self.figure_path, self.model)
+
+                    if self.model_name == MODEL_TYPE.ESRNN.value and self.plot_ts_enabled() \
+                            and self.config["sample_ids"]:
+                        self.val(file_path, testing=True, debugging=True, figure_path=self.figure_path)
                     break
                 else:
                     loss_repeat_counter += 1
             prev_loss = epoch_loss
 
-            file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
-            file_path_validation_loss = file_path / "validation_losses.csv"
             if e == 0:
                 file_path.mkdir(parents=True, exist_ok=True)
                 with open(file_path_validation_loss, "w") as f:
                     f.write("epoch,training_loss,validation_loss\n")
             if e == self.max_epochs - 1 and self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled():
                 plot_stacks(self.run_id, self.figure_path, self.model)
-            epoch_val_loss = self.val(file_path)
+            epoch_val_loss = self.val(file_path, testing=True, debugging=False, figure_path=self.figure_path)
             with open(file_path_validation_loss, "a") as f:
                 f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
             self.epochs += 1
@@ -137,7 +142,7 @@ class BaseTrainer(nn.Module):
     def train_batch(self, train, val, test, info_cat, idx):
         pass
 
-    def val(self, file_path, testing):
+    def val(self, file_path, testing, debugging=False, figure_path=None):
         return 0
 
     def plot(self, filepath=None, testing=True):

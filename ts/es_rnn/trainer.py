@@ -31,7 +31,7 @@ class ESRNNTrainer(BaseTrainer):
         self.scheduler.step()
         return float(loss)
 
-    def val(self, file_path):
+    def val(self, file_path, testing, debugging, figure_path):
         print("Validation")
         self.model.eval()
         with torch.no_grad():
@@ -43,7 +43,9 @@ class ESRNNTrainer(BaseTrainer):
             hold_out_loss = 0
             for batch_num, (train, val, test, info_cat, _, idx) in enumerate(self.data_loader):
                 _, _, (hold_out_pred, network_output_non_train), \
-                (hold_out_act, hold_out_act_deseas_norm), _ = self.model(train, val, test, info_cat, idx, testing=True)
+                (hold_out_act, hold_out_act_deseas_norm), _ = self.model(train, val, test, info_cat, idx,
+                                                                         testing=testing,
+                                                                         debugging=debugging, figure_path=self.figure_path)
                 # Compute loss between normalized and deseasonalized predictions and
                 # either validation or test data depending the value of the flag testing
                 # hold_out_loss += self.criterion(network_output_non_train.unsqueeze(0).float(),
