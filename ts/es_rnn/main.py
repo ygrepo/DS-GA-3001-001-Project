@@ -12,7 +12,7 @@ from ts.es_rnn.model import ESRNN
 from ts.es_rnn.trainer import ESRNNTrainer
 from ts.utils.data_loading import SeriesDataset
 from ts.utils.helper_funcs import MODEL_TYPE, set_seed, create_datasets, generate_timeseries_length_stats, \
-    filter_timeseries
+    filter_timeseries, SAVE_LOAD_TYPE
 
 set_seed(0)
 
@@ -62,10 +62,10 @@ dataset = SeriesDataset(data_infocat_ohe, data_infocat_headers, data_info_cat, t
 config["num_of_categories"] = len(dataset.data_info_cat_headers)
 dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
 
-model = ESRNN(num_series=len(dataset), config=config)
 reload = config["reload"]
-add_run_id = config["add_run_id"]
+model = ESRNN(num_series=len(dataset), config=config)
 optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
+add_run_id = config["add_run_id"]
 # criterion = PinballLoss(config["training_tau"], config["output_size"] * config["batch_size"], config["device"])
 criterion = SmoothL1Loss()
 tr = ESRNNTrainer(MODEL_TYPE.ESRNN.value, model, optimizer, criterion, dataloader, run_id, add_run_id, config,

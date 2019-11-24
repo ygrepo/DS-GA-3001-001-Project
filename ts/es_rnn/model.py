@@ -102,8 +102,8 @@ class ESRNN(nn.Module):
             input_window_start = i + 1 - self.config["input_size"]
             input_window_end = i + 1
 
-            train_deseas_window_input = train[:, input_window_start:input_window_end] / seasonalities_stacked[:,
-                                                                                        input_window_start:input_window_end]
+            train_deseas_window_input = train[:, input_window_start:input_window_end] / \
+                                        seasonalities_stacked[:,input_window_start:input_window_end]
             train_deseas_norm_window_input = (train_deseas_window_input / levs_stacked[:, i].unsqueeze(1))
             train_deseas_norm_cat_window_input = torch.cat((train_deseas_norm_window_input, info_cat), dim=1)
             window_input_list.append(train_deseas_norm_cat_window_input)

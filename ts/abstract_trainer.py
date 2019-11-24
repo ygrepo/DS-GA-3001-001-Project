@@ -16,16 +16,22 @@ class BaseTrainer(nn.Module):
                  sampling=False, reload=SAVE_LOAD_TYPE.NO_ACTION):
         super(BaseTrainer, self).__init__()
         self.model_name = model_name
-        self.model = model.to(config["device"])
+        if model:
+            self.model = model.to(config["device"])
+        else:
+            self.model = None
         self.config = config
         self.data_loader = dataloader
         self.sampling = sampling
         self.ohe_headers = ohe_headers
         self.optimizer = optimizer
         # self.optimizer = torch.optim.ASGD(self.model.parameters(), lr=config["learning_rate"])
-        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
-                                                         step_size=config["lr_anneal_step"],
-                                                         gamma=config["lr_anneal_rate"])
+        if optimizer:
+            self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
+                                                             step_size=config["lr_anneal_step"],
+                                                             gamma=config["lr_anneal_rate"])
+        else:
+            self.scheduler = None
         self.criterion = criterion
         # self.criterion = SmoothL1Loss()
         self.epochs = 0
@@ -54,21 +60,26 @@ class BaseTrainer(nn.Module):
         start_time = time.time()
         file_path = Path(".") / ("models/" + self.model_name)
         if self.reload == SAVE_LOAD_TYPE.MODEL:
-            self.model = load_model(file_path)
+            model, optimizer = load_model(file_path, self.config)
+            self.model = model
+            self.optimizer = optimizer
         if self.reload == SAVE_LOAD_TYPE.MODEL_PARAMETERS:
             load_model_parameters(file_path, self.model, self.optimizer)
         max_loss_repeat = 3
         loss_repeat_counter = 1
         prev_loss = float("-inf")
         for e in range(self.max_epochs):
-            epoch_loss = self.train()
-            #epoch_loss = 0
+
+            if self.reload != SAVE_LOAD_TYPE.NO_ACTION:
+                epoch_loss = 0
+            else:
+                epoch_loss = self.train()
 
             if self.save_model_enabled() and epoch_loss < max_loss:
                 print("Loss decreased, saving model!")
                 file_path = Path(".") / ("models/" + self.model_name)
                 if self.config["save_model"] == SAVE_LOAD_TYPE.MODEL:
-                    save_model(file_path, self.model, self.run_id)
+                    save_model(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
                 elif self.config["save_model"] == SAVE_LOAD_TYPE.MODEL_PARAMETERS:
                     save_model_parameters(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
                 max_loss = epoch_loss
@@ -77,7 +88,8 @@ class BaseTrainer(nn.Module):
                 loss_repeat_counter += 1
                 if loss_repeat_counter >= max_loss_repeat:
                     print("Loss not decreasing for last {} times".format(loss_repeat_counter))
-                    if self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled() and self.config["sample_ids"]:
+                    if self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled() and self.config[
+                        "sample_ids"]:
                         plot_stacks(self.run_id, self.figure_path, self.model)
                     break
                 else:
@@ -101,7 +113,8 @@ class BaseTrainer(nn.Module):
         print("Total Training in mins: %5.2f" % ((time.time() - start_time) / 60))
 
     def train(self):
-        self.model.train()
+        if self.model:
+            self.model.train()
         epoch_loss = 0
         for batch_num, (train, val, test, info_cat, _, idx) in enumerate(self.data_loader):
             start = time.time()

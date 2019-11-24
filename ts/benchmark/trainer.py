@@ -8,22 +8,35 @@ import torch.nn as nn
 from ts.abstract_trainer import BaseTrainer
 from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
 from gpytorch import mlls
+import gpytorch
+from ts.benchmark.model import SpectralMixtureGPModel
 
 
 class Trainer(BaseTrainer):
-    def __init__(self, model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config,
-                 ohe_headers, csv_path, figure_path, sampling, reload):
+    def __init__(self, model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, ohe_headers,
+                 csv_path, figure_path,
+                 sampling, reload):
         super().__init__(model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, ohe_headers,
                          csv_path, figure_path, sampling, reload)
 
     def train_batch(self, train, val, test, info_cat, idx):
 
-        self.model.covar_module.initialize_from_data(train, val)
+        #self.model.covar_module.initialize_from_data(train, val)
+        y_train = train.view(1,-1,1)
+        x_train = np.array(range(0, train.shape[1]))
+        #val = val.view(1,-1,1)
+        likelihood = gpytorch.likelihoods.GaussianLikelihood(batch_size=y_train.shape[1])
+        self.model = SpectralMixtureGPModel(x_train, y_train, likelihood, num_outputs=y_train.shape[1])
         self.model.train()
         self.model.likelihood.train()
         self.mll = mlls.ExactMarginalLogLikelihood(self.model.likelihood, self.model)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config["learning_rate"])
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
+                                                         step_size=self.config["lr_anneal_step"],
+                                                         gamma=self.config["lr_anneal_rate"])
 
         self.optimizer.zero_grad()
+        print(x_train.shape, y_train.shape)
         forecast = self.model(train)
         loss = -self.mll(forecast, val)
         loss.backward()
@@ -33,6 +46,7 @@ class Trainer(BaseTrainer):
 
     def val(self, file_path, testing=False):
         self.model.eval()
+        self.likelihood.eval()
         with torch.no_grad():
             acts = []
             preds = []

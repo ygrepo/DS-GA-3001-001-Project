@@ -45,9 +45,10 @@ class ESRNNTrainer(BaseTrainer):
                 _, _, (hold_out_pred, network_output_non_train), \
                 (hold_out_act, hold_out_act_deseas_norm), _ = self.model(train, val, test, info_cat, idx, testing=True)
                 # Compute loss between normalized and deseasonalized predictions and
-                # either validation or test data depending the value of the flag testing.
-                hold_out_loss += self.criterion(network_output_non_train.unsqueeze(0).float(),
-                                                hold_out_act_deseas_norm.unsqueeze(0).float())
+                # either validation or test data depending the value of the flag testing
+                # hold_out_loss += self.criterion(network_output_non_train.unsqueeze(0).float(),
+                #                                 hold_out_act_deseas_norm.unsqueeze(0).float())
+                hold_out_loss += self.criterion(hold_out_pred, hold_out_act)
                 acts.extend(hold_out_act.view(-1).cpu().detach().numpy())
                 total_act = torch.cat((train, hold_out_pred), dim=1)
                 total_acts.extend(total_act.view(-1).cpu().detach().numpy())

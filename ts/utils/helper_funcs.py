@@ -50,7 +50,7 @@ def unpad_sequence(padded_sequence, lens):
     return seqs
 
 
-def save_model(file_path, model, run_id, add_run_id=False):
+def save_model(file_path, model, optimizer, run_id, add_run_id=False):
     file_path.mkdir(parents=True, exist_ok=True)
     if add_run_id:
         model_path = file_path / ("model_" + run_id + ".pyt")
@@ -58,18 +58,26 @@ def save_model(file_path, model, run_id, add_run_id=False):
         model_path = file_path / ("model.pyt")
 
     torch.save(model, model_path)
+    print("Saving whole model and optimizer state dictionary")
+    torch.save({
+        "model": model,
+        "optimizer_state_dict": optimizer.state_dict(),
+    }, model_path)
 
 
-def load_model(file_path):
+def load_model(file_path, config):
     model_path = file_path / "model.pyt"
     if model_path.exists():
         if torch.cuda.is_available():
             map_location = lambda storage, loc: storage.cuda()
         else:
             map_location = "cpu"
-        model = torch.load(model_path, map_location=map_location)
-        print(f"Restored checkpoint from {model_path}.")
-        return model
+        checkpoint = torch.load(model_path, map_location=map_location)
+        model = checkpoint["model"]
+        optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        print(f"Restored checkpoint(whole model and optimizer state dictionary) from {model_path}.")
+        return model, optimizer
 
 
 def save_model_parameters(file_path, model, optimiser, run_id, add_run_id=False):
@@ -79,6 +87,7 @@ def save_model_parameters(file_path, model, optimiser, run_id, add_run_id=False)
     else:
         model_path = file_path / ("model.pyt")
 
+    print("Saving mode and optimizer state dictionaries")
     torch.save({
         "model_state_dict": model.state_dict(),
         "optimizer_state_dict": optimiser.state_dict(),
@@ -95,7 +104,7 @@ def load_model_parameters(file_path, model, optimiser):
         checkpoint = torch.load(model_path, map_location=map_location)
         model.load_state_dict(checkpoint["model_state_dict"])
         optimiser.load_state_dict(checkpoint["optimizer_state_dict"])
-        print(f"Restored checkpoint from {model_path}.")
+        print(f"Restored checkpoint(state dictionaries) from {model_path}.")
 
 
 def read_file(file_location, sample_ids, sampling=False, sample_size=5):
@@ -138,7 +147,9 @@ def create_val_set(train, output_size):
     return np.array(new_train), np.array(val)
 
 
-def create_datasets(train_file_location, test_file_location, output_size, sample_ids, sample=False, sampling_size=5):
+def create_datasets(train_file_location, test_file_location, output_size,
+                    create_val_dataset=True,
+                    sample_ids=[], sample=False, sampling_size=5):
     train, train_idx = read_file(train_file_location, sample_ids, sample, sampling_size)
     if sample and sample_ids:
         train, train_idx = filter_sample_ids(train, train_idx, sample_ids)
@@ -148,7 +159,11 @@ def create_datasets(train_file_location, test_file_location, output_size, sample
     if sample and sample_ids:
         test, test_idx = filter_sample_ids(test, test_idx, sample_ids)
 
-    train, val = create_val_set(train, output_size)
+    if create_val_dataset:
+        train, val = create_val_set(train, output_size)
+    else:
+        val = None
+
     if sample and sample_ids:
         print("Sampling train data for {}".format(sample_ids))
         print("Sampling test data for {}".format(sample_ids))
@@ -176,7 +191,7 @@ def determine_chop_value(data, backcast_length, forecast_length):
             ts_lengths.append(len(ts))
         # print(len(ts), length)
     if ts_lengths:
-        #return np.quantile(ts_lengths, 0.25).astype(dtype=int)
+        # return np.quantile(ts_lengths, 0.25).astype(dtype=int)
         return np.amin(np.array(ts_lengths)).astype(dtype=int)
     return -1
 
@@ -189,7 +204,7 @@ def chop_series(train, chop_val):
     return train, train_len_mask
 
 
-def filter_timeseries(info,variable, sample, ts_labels, data_train, chop_val, data_val, data_test):
+def filter_timeseries(info, variable, sample, ts_labels, data_train, chop_val, data_val, data_test):
     data_train, mask = chop_series(data_train, chop_val)
     if sample:
         info = info[(info["M4id"].isin(ts_labels.keys())) & (info["SP"] == variable)]

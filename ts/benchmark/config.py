@@ -2,6 +2,7 @@ from math import sqrt
 
 import torch
 
+from ts.n_beats.model import BLOCK_TYPE
 from ts.utils.helper_funcs import SAVE_LOAD_TYPE
 
 
@@ -11,16 +12,13 @@ def get_config(interval):
         "device": ("cuda" if torch.cuda.is_available() else "cpu"),
         "percentile": 50,
         "training_percentile": 45,
-        "add_nl_layer": True,
-        "rnn_cell_type": "LSTM",
         "learning_rate": 1e-3,
         "learning_rates": ((10, 1e-4)),
-        "num_of_train_epochs": 1,
+        "num_of_train_epochs": 100,
         "num_of_train_epochs_sampling": 1,
         "num_of_categories": 6,  # in data provided
         "batch_size": 1024,
         "gradient_clipping": 20,
-        "c_state_penalty": 0,
         "min_learning_rate": 0.0001,
         "lr_ratio": sqrt(10),
         "lr_tolerance_multip": 1.005,
@@ -29,96 +27,97 @@ def get_config(interval):
         "print_output_stats": 3,
         "lr_anneal_rate": 0.5,
         "lr_anneal_step": 5,
-        "sample": True,
-        "reload": SAVE_LOAD_TYPE.MODEL,
+        "sample": False,
+        "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
         "save_model": SAVE_LOAD_TYPE.NO_ACTION,
-        "plot_ts": True
+        "plot_ts": True,
     }
 
     if interval == "Quarterly":
         config.update({
-            "chop_val": 72,
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
+            "thetas_dims": [2, 8],
+            "nb_blocks_per_stack": 3,
+            "hidden_layer_units": 128,
+            "share_weights_in_stack": False,
             "variable": "Quarterly",
-            "dilations": ((1, 2), (4, 8)),
-            "state_hsize": 40,
             "seasonality": 4,
-            "input_size": 4,
             "output_size": 8,
-            "level_variability_penalty": 80,
             #"sample_ids": [],
-            "sample_ids": ["Q66"],
+            "sample_ids": ["Q24000"],
         })
     elif interval == "Monthly":
         config.update({
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
+            "thetas_dims": [2, 8],
+            "nb_blocks_per_stack": 3,
+            "hidden_layer_units": 128,
+            "share_weights_in_stack": True,
             "chop_val": 72,
             "variable": "Monthly",
-            "dilations": ((1, 3), (6, 12)),
-            "state_hsize": 50,
             "seasonality": 12,
-            "input_size": 12,
             "output_size": 18,
-            "level_variability_penalty": 50,
-            "sample_ids": [],
-            # "sample_ids": ["M1"],
+            # "sample_ids": [],
+            "sample_ids": ["M1"],
         })
     elif interval == "Daily":
         config.update({
-            "chop_val": 200,
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
+            "thetas_dims": [2, 8],
+            "nb_blocks_per_stack": 3,
+            "hidden_layer_units": 128,
+            "share_weights_in_stack": True,
             "variable": "Daily",
-            "dilations": ((1, 7), (14, 28)),
-            "state_hsize": 50,
             "seasonality": 7,
-            "input_size": 7,
             "output_size": 14,
-            "level_variability_penalty": 50,
-            # "sample_ids": [],
-            "sample_ids": ["D1"],
+            #"sample_ids": [],
+            "sample_ids": ["D404"],
         })
     elif interval == "Yearly":
 
         config.update({
-            "chop_val": 25,
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
+            "thetas_dims": [3, 8],
+            "nb_blocks_per_stack": 3,
+            "hidden_layer_units": 128,
+            "share_weights_in_stack": True,
             "variable": "Yearly",
-            "dilations": ((1, 2), (2, 6)),
-            "state_hsize": 30,
             "seasonality": 1,
-            "input_size": 4,
             "output_size": 6,
-            "level_variability_penalty": 0,
             "sample_ids": [],
-            # "sample_ids": ["Y3974"],
+            #"sample_ids": ["Y3974"],
         })
     elif interval == "Weekly":
         config.update({
-            "chop_val": 25,
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
+            "thetas_dims": [2, 8],
+            "nb_blocks_per_stack": 3,
+            "hidden_layer_units": 128,
+            "share_weights_in_stack": True,
             "variable": "Weekly",
-            "dilations": ((1, 14), (14, 28)),
-            "state_hsize": 60,
             "seasonality": 1,
-            "input_size": 1,
             "output_size": 13,
-            "level_variability_penalty": 0,
-            # "sample_ids": [],
-            "sample_ids": ["W1"],
+            #"sample_ids": [],
+             "sample_ids": ["W246"],
         })
     elif interval == "Hourly":
         config.update({
-            "chop_val": 25,
+            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
+            "thetas_dims": [2, 8],
+            "nb_blocks_per_stack": 3,
+            "hidden_layer_units": 128,
+            "share_weights_in_stack": False,
             "variable": "Hourly",
-            "dilations": ((1, 24), (24, 48)),
-            "state_hsize": 60,
             "seasonality": 24,
-            "input_size": 24,
             "output_size": 48,
-            "level_variability_penalty": 0,
             "sample_ids": [],
-            # "sample_ids": ["H344"],
+            #"sample_ids": ["H344"],
         })
     else:
-        print("I don\"t have that config. :(")
+        print("I dont have that config. :(")
 
-    config["input_size_i"] = config["input_size"]
+    # config["input_size_i"] = config["input_size"]
     config["output_size_i"] = config["output_size"]
     config["tau"] = config["percentile"] / 100
     config["training_tau"] = config["training_percentile"] / 100
