@@ -15,7 +15,6 @@ def seasonality_model(thetas, t, device):
     S = torch.cat([s1, s2])
     thetas_p = thetas.view(thetas.shape[0] * thetas.shape[1], thetas.shape[2])
     mm_t = torch.mm(thetas_p, S.to(device))
-    # print(thetas.shape, thetas_p.shape, S.shape, mm_t.shape)
     if thetas.shape[1] == 1:
         return mm_t.unsqueeze(1)
     else:
@@ -28,7 +27,6 @@ def trend_model(thetas, t, device):
     T = torch.tensor([t ** i for i in range(p)]).float()
     thetas_p = thetas.view(thetas.shape[0] * thetas.shape[1], thetas.shape[2])
     mm_t = torch.mm(thetas_p, T.to(device))
-    # print(thetas.shape, thetas_p.shape, T.shape, mm_t.shape)
     if thetas.shape[1] == 1:
         return mm_t.unsqueeze(1)
     else:
@@ -44,20 +42,23 @@ def linspace(backcast_length, forecast_length):
 
 class Block(nn.Module):
 
-    def __init__(self, block_type, id, units, thetas_dim, device, backcast_length=10, forecast_length=5,
+    def __init__(self, block_type, id, units, thetas_dim, dropout, device, backcast_length=10, forecast_length=5,
                  share_thetas=False):
         super(Block, self).__init__()
         self.block_type = block_type
         self.id = id
         self.units = units
         self.thetas_dim = thetas_dim
+        self.dropout = dropout
         self.backcast_length = backcast_length
         self.forecast_length = forecast_length
         self.share_thetas = share_thetas
         self.fc1 = nn.Linear(backcast_length, units)
-        #self.d1 = nn.Dropout()
+        self.d1 = nn.Dropout(dropout)
         self.fc2 = nn.Linear(units, units)
+        self.d2 = nn.Dropout(dropout)
         self.fc3 = nn.Linear(units, units)
+        self.d3 = nn.Dropout(dropout)
         self.fc4 = nn.Linear(units, units)
         self.device = device
         self.backcast_linspace, self.forecast_linspace = linspace(backcast_length, forecast_length)
@@ -71,29 +72,31 @@ class Block(nn.Module):
 
     def forward(self, x):
         x = F.relu(self.fc1(x.to(self.device)))
+        x = self.d1(x)
         x = F.relu(self.fc2(x))
+        x = self.d2(x)
         x = F.relu(self.fc3(x))
+        x = self.d3(x)
         x = F.relu(self.fc4(x))
         return x
 
     def __str__(self):
         block_type = type(self).__name__
-        return f"{block_type}(id={self.id}, units={self.units}, thetas_dim={self.thetas_dim}, " \
+        return f"{block_type}(id={self.id}, units={self.units}, thetas_dim={self.thetas_dim}, dropout={self.dropout}, " \
                f"backcast_length={self.backcast_length}, forecast_length={self.forecast_length}, " \
                f"share_thetas={self.share_thetas}) at @{id(self)}"
 
 
 class SeasonalityBlock(Block):
 
-    def __init__(self, block_type, id, units, thetas_dim, device, backcast_length=10, forecast_length=5):
-        super(SeasonalityBlock, self).__init__(block_type, id, units, thetas_dim, device, backcast_length,
+    def __init__(self, block_type, id, units, thetas_dim, dropout, device, backcast_length=10, forecast_length=5):
+        super(SeasonalityBlock, self).__init__(block_type, id, units, thetas_dim, dropout, device, backcast_length,
                                                forecast_length, share_thetas=True)
 
     def forward(self, x):
         x = super(SeasonalityBlock, self).forward(x)
         backcast = seasonality_model(self.theta_b_fc(x), self.backcast_linspace, self.device)
         forecast = seasonality_model(self.theta_f_fc(x), self.forecast_linspace, self.device)
-        # print("Adding backcast/forecast for block:{}".format(self.id))
         self.backcasts.append(backcast)
         self.forecasts.append(forecast)
         return backcast, forecast
@@ -101,8 +104,8 @@ class SeasonalityBlock(Block):
 
 class TrendBlock(Block):
 
-    def __init__(self, block_type, id, units, thetas_dim, device, backcast_length=10, forecast_length=5):
-        super(TrendBlock, self).__init__(block_type, id, units, thetas_dim, device, backcast_length,
+    def __init__(self, block_type, id, units, thetas_dim, dropout, device, backcast_length=10, forecast_length=5):
+        super(TrendBlock, self).__init__(block_type, id, units, thetas_dim, dropout, device, backcast_length,
                                          forecast_length, share_thetas=True)
 
     def forward(self, x):
@@ -117,8 +120,9 @@ class TrendBlock(Block):
 
 class GenericBlock(Block):
 
-    def __init__(self, block_type, id, units, thetas_dim, device, backcast_length=10, forecast_length=5):
-        super(GenericBlock, self).__init__(block_type, id, units, thetas_dim, device, backcast_length, forecast_length)
+    def __init__(self, block_type, id, units, thetas_dim, dropout, device, backcast_length=10, forecast_length=5):
+        super(GenericBlock, self).__init__(block_type, id, units, thetas_dim, dropout, device, backcast_length,
+                                           forecast_length)
 
         self.backcast_fc = nn.Linear(thetas_dim, backcast_length)
         self.forecast_fc = nn.Linear(thetas_dim, forecast_length)
@@ -128,6 +132,7 @@ class GenericBlock(Block):
         x = super(GenericBlock, self).forward(x)
 
         theta_b = F.relu(self.theta_b_fc(x))
+        x = F.dropout(x, 0.2)
         theta_f = F.relu(self.theta_f_fc(x))
 
         backcast = self.backcast_fc(theta_b)  # generic. 3.3.
@@ -148,7 +153,8 @@ class NBeatsNet(nn.Module):
                  backcast_length=10,
                  thetas_dims=[4, 8],
                  share_weights_in_stack=False,
-                 hidden_layer_units=256, ):
+                 hidden_layer_units=256,
+                 dropout=0, ):
         super(NBeatsNet, self).__init__()
         self.forecast_length = forecast_length
         self.backcast_length = backcast_length
@@ -159,6 +165,7 @@ class NBeatsNet(nn.Module):
         self.stacks = []
         self.thetas_dim = thetas_dims
         self.parameters = []
+        self.dropout = dropout
         self.device = device
         print(f"| N-Beats")
         for stack_id in range(len(self.stack_types)):
@@ -178,7 +185,7 @@ class NBeatsNet(nn.Module):
                 block_id_str = str(stack_id) + "_" + str(block_id)
                 print("Creating block:{}".format(block_id_str))
                 block = block_init(stack_type, block_id_str, self.hidden_layer_units, self.thetas_dim[stack_id],
-                                   self.device, self.backcast_length, self.forecast_length)
+                                   self.dropout, self.device, self.backcast_length, self.forecast_length)
                 self.parameters.extend(block.parameters())
             print(f"     | -- {block}")
             blocks.append(block)

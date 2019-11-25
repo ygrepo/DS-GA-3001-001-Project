@@ -30,9 +30,9 @@ class ESRNN(nn.Module):
         #self.act = nn.ReLU()
         self.act = nn.Tanh()
         #self.bn1 = nn.LayerNorm(config["state_hsize"])
-        #self.dropout_1 = nn.Dropout(self.config["drop_out"])
+        #self.dropout_1 = nn.Dropout(self.config["dropout"])
         #self.bn2 = nn.LayerNorm(config["state_hsize"])
-        #self.dropout_2 = nn.Dropout(self.config["drop_out"])
+        #self.dropout_2 = nn.Dropout(self.config["dropout"])
         self.scoring = nn.Linear(config["state_hsize"], config["output_size"])
 
         self.logistic = nn.Sigmoid()

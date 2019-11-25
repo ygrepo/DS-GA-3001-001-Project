@@ -6,9 +6,9 @@ import torch
 from torch.utils.data import DataLoader
 
 from ts.n_beats.config import get_config
-from ts.utils.data_loading import SeriesDataset
 from ts.n_beats.model import NBeatsNet
 from ts.n_beats.trainer import Trainer
+from ts.utils.data_loading import SeriesDataset
 from ts.utils.helper_funcs import MODEL_TYPE, set_seed, create_datasets, determine_chop_value, filter_timeseries, \
     generate_timeseries_length_stats
 from ts.utils.loss_modules import PinballLoss
@@ -64,6 +64,7 @@ def main():
                       backcast_length=backcast_length,
                       hidden_layer_units=config["hidden_layer_units"],
                       share_weights_in_stack=config["share_weights_in_stack"],
+                      dropout=config["dropout"],
                       device=config["device"])
     reload = config["reload"]
     add_run_id = config["add_run_id"]

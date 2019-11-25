@@ -38,7 +38,7 @@ def get_config(interval):
             "lr_ratio": sqrt(10),
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
-            "drop_out": 0.2,
+            "dropout": 0.2,
             "chop_val": 72,
             "variable": "Quarterly",
             "dilations": ((1, 2), (4, 8)),
