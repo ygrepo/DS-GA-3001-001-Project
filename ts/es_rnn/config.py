@@ -13,19 +13,19 @@ def get_config(interval):
         "training_percentile": 45,
         "add_nl_layer": True,
         "rnn_cell_type": "GRU",
-        "learning_rate": 1e-1,
+        #"learning_rate": 1e-1,
         #"learning_rate": 1e-3,
-        "learning_rates": ((10, 1e-4)),
+        #"learning_rates": ((10, 1e-4)),
         "num_of_train_epochs": 100,
         "num_of_train_epochs_sampling": 100,
         "num_of_categories": 6,  # in data provided
         "batch_size": 1024,
         "gradient_clipping": 20,
         "c_state_penalty": 0,
-        "min_learning_rate": 0.0001,
-        "lr_ratio": sqrt(10),
-        "lr_tolerance_multip": 1.005,
-        "min_epochs_before_changing_lrate": 2,
+        #"min_learning_rate": 0.0001,
+        #"lr_ratio": sqrt(10),
+        #"lr_tolerance_multip": 1.005,
+        #"min_epochs_before_changing_lrate": 2,
         "print_train_batch_every": 5,
         "print_output_stats": 3,
         "lr_anneal_rate": 0.5,
@@ -39,6 +39,13 @@ def get_config(interval):
 
     if interval == "Quarterly":
         config.update({
+            "learning_rate": 1e-1,
+            "learning_rates": ((10, 1e-4)),
+            "min_learning_rate": 0.0001,
+            "lr_ratio": sqrt(10),
+            "lr_tolerance_multip": 1.005,
+            "min_epochs_before_changing_lrate": 2,
+            "drop_out": 0.2,
             "chop_val": 72,
             "variable": "Quarterly",
             "dilations": ((1, 2), (4, 8)),
@@ -53,6 +60,12 @@ def get_config(interval):
         })
     elif interval == "Monthly":
         config.update({
+            "learning_rate": 1e-2,
+            "learning_rates": ((10, 1e-4)),
+            "min_learning_rate": 0.0001,
+            "lr_ratio": sqrt(10),
+            "lr_tolerance_multip": 1.005,
+            "min_epochs_before_changing_lrate": 2,
             "chop_val": 72,
             "variable": "Monthly",
             "dilations": ((1, 3), (6, 12)),

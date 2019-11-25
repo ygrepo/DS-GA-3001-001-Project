@@ -27,9 +27,12 @@ class ESRNN(nn.Module):
 
         self.nl_layer = nn.Linear(config["state_hsize"],
                                   config["state_hsize"])
+        #self.act = nn.ReLU()
         self.act = nn.Tanh()
-        self.dropout_1 = nn.Dropout(0.2)
-        self.dropout_2 = nn.Dropout(0.2)
+        #self.bn1 = nn.LayerNorm(config["state_hsize"])
+        #self.dropout_1 = nn.Dropout(self.config["drop_out"])
+        #self.bn2 = nn.LayerNorm(config["state_hsize"])
+        #self.dropout_2 = nn.Dropout(self.config["drop_out"])
         self.scoring = nn.Linear(config["state_hsize"], config["output_size"])
 
         self.logistic = nn.Sigmoid()
@@ -157,11 +160,13 @@ class ESRNN(nn.Module):
 
     def series_forward(self, data):
         data = self.resid_drnn(data)
-        data = self.dropout_1(data)
+        #data = self.bn2(data)
+        #data = self.dropout_1(data)
         if self.add_nl_layer:
             data = self.nl_layer(data)
             data = self.act(data)
-            data = self.dropout_2(data)
+            #data = self.bn1(data)
+            #data = self.dropout_2(data)
         data = self.scoring(data)
         return data
 
