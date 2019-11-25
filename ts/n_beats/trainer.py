@@ -123,5 +123,4 @@ class Trainer(BaseTrainer):
             backcast, forecast = self.model(input)
             original_ts = torch.cat((train, target), axis=1)
             predicted_ts = torch.cat((train, forecast.squeeze(axis=0)), axis=1)
-            plot_ts(self.run_id, original_ts, predicted_ts, ts_labels, cats, self.figure_path,
-                    number_to_plot=train.shape[0])
+            plot_ts(original_ts, predicted_ts, ts_labels, cats, self.figure_path, number_to_plot=train.shape[0])

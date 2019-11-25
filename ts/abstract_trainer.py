@@ -34,7 +34,6 @@ class BaseTrainer(nn.Module):
         else:
             self.scheduler = None
         self.criterion = criterion
-        # self.criterion = SmoothL1Loss()
         self.epochs = 0
         self.max_epochs = config["num_of_train_epochs"]
         if sampling:

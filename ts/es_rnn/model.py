@@ -160,12 +160,12 @@ class ESRNN(nn.Module):
 
     def series_forward(self, data):
         data = self.resid_drnn(data)
-        #data = self.bn2(data)
+        #data = self.bn1(data)
         #data = self.dropout_1(data)
         if self.add_nl_layer:
             data = self.nl_layer(data)
             data = self.act(data)
-            #data = self.bn1(data)
+            #data = self.bn2(data)
             #data = self.dropout_2(data)
         data = self.scoring(data)
         return data

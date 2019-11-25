@@ -145,7 +145,7 @@ def get_config(interval):
             "output_size": 48,
             "level_variability_penalty": 0,
             "sample_ids": [],
-            # "sample_ids": ["H344"],
+            "sample_ids": ["H344"],
         })
     else:
         print("I don\"t have that config. :(")

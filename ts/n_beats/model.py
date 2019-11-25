@@ -20,7 +20,6 @@ def seasonality_model(thetas, t, device):
         return mm_t.unsqueeze(1)
     else:
         return mm_t.view(thetas.shape[0], thetas.shape[1], -1)
-    # return thetas.squeeze().mm(S.to(device))
 
 
 def trend_model(thetas, t, device):
@@ -34,9 +33,6 @@ def trend_model(thetas, t, device):
         return mm_t.unsqueeze(1)
     else:
         return mm_t.view(thetas.shape[0], thetas.shape[1], -1)
-
-
-#    return thetas.squeeze().mm(T.to(device))
 
 
 def linspace(backcast_length, forecast_length):
@@ -59,7 +55,7 @@ class Block(nn.Module):
         self.forecast_length = forecast_length
         self.share_thetas = share_thetas
         self.fc1 = nn.Linear(backcast_length, units)
-        # self.fc1_bn = nn.BatchNorm1d(fc1_bn_size)
+        #self.d1 = nn.Dropout()
         self.fc2 = nn.Linear(units, units)
         self.fc3 = nn.Linear(units, units)
         self.fc4 = nn.Linear(units, units)
