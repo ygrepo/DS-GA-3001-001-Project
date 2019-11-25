@@ -28,8 +28,9 @@ class BaseTrainer(nn.Module):
         # self.optimizer = torch.optim.ASGD(self.model.parameters(), lr=config["learning_rate"])
         if optimizer:
             self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
-                                                             step_size=config["lr_anneal_step"],
-                                                             gamma=config["lr_anneal_rate"])
+                                                              step_size=config["lr_anneal_step"],
+                                                              gamma=config["lr_anneal_rate"])
+            #self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=5, verbose=True)
         else:
             self.scheduler = None
         self.criterion = criterion
@@ -87,7 +88,19 @@ class BaseTrainer(nn.Module):
             file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
             file_path_validation_loss = file_path / "validation_losses.csv"
 
-            if isclose(epoch_loss, prev_loss, rel_tol=1e-4):
+            if e == 0:
+                file_path.mkdir(parents=True, exist_ok=True)
+                with open(file_path_validation_loss, "w") as f:
+                    f.write("epoch,training_loss,validation_loss\n")
+            if e == self.max_epochs - 1 and self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled():
+                plot_stacks(self.run_id, self.figure_path, self.model)
+
+            epoch_val_loss = self.val(file_path, testing=True, debugging=False, figure_path=self.figure_path)
+            with open(file_path_validation_loss, "a") as f:
+                f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
+            self.scheduler.step()
+
+            if isclose(epoch_val_loss, prev_loss, rel_tol=1e-4):
                 loss_repeat_counter += 1
                 if loss_repeat_counter >= max_loss_repeat:
                     print("Loss not decreasing for last {} times".format(loss_repeat_counter))
@@ -95,24 +108,16 @@ class BaseTrainer(nn.Module):
                             and self.config["sample_ids"]:
                         plot_stacks(self.run_id, self.figure_path, self.model)
 
-                    #if self.model_name == MODEL_TYPE.ESRNN.value and self.plot_ts_enabled() \
-                    #        and self.config["sample_ids"]:
-                    #    self.val(file_path, testing=True, debugging=True, figure_path=self.figure_path)
+                    if self.model_name == MODEL_TYPE.ESRNN.value and self.plot_ts_enabled() \
+                            and self.config["sample_ids"]:
+                        self.val(file_path, testing=True, debugging=True, figure_path=self.figure_path)
                     break
                 else:
                     loss_repeat_counter += 1
-            prev_loss = epoch_loss
+            prev_loss = epoch_val_loss
 
-            if e == 0:
-                file_path.mkdir(parents=True, exist_ok=True)
-                with open(file_path_validation_loss, "w") as f:
-                    f.write("epoch,training_loss,validation_loss\n")
-            if e == self.max_epochs - 1 and self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled():
-                plot_stacks(self.run_id, self.figure_path, self.model)
-            epoch_val_loss = self.val(file_path, testing=True, debugging=False, figure_path=self.figure_path)
-            with open(file_path_validation_loss, "a") as f:
-                f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
             self.epochs += 1
+
         if self.plot_ts_enabled():
             self.plot(testing=True)
         print("Total Training in mins: %5.2f" % ((time.time() - start_time) / 60))

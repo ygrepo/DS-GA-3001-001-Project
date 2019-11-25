@@ -289,7 +289,7 @@ def plot_block_ts(ax, block):
     ax.set_autoscaley_on(True)
 
 
-def plot_ts(run_id, original_ts, predicted_ts, ts_labels, cats, path, number_to_plot=1):
+def plot_ts(original_ts, predicted_ts, ts_labels, cats, path, number_to_plot=1):
     path.mkdir(parents=True, exist_ok=True)
     fig, axes = plt.subplots(1, number_to_plot, figsize=(17, 4))
     plt.subplots_adjust(hspace=.3)
@@ -344,6 +344,34 @@ def plot_levels_seasonalities(train, levels, seasonalities, path=None):
     ax[1].set_xlim([0, np.amax(x_seasonalities) + 1])
     ax[1].set_ylim([ymin, ymax])
     plt.savefig(path / "levels_seasonalities.png")
+    plt.tight_layout()
+    sns.despine()
+    plt.show()
+
+
+def plot_windows(window_input, window_output, path=None):
+    path.mkdir(parents=True, exist_ok=True)
+    fig, ax = plt.subplots(1, 2, figsize=(17, 4))
+    backcasts = window_input.squeeze(1).cpu().detach().numpy()
+    forecasts = window_output.squeeze(1).cpu().detach().numpy()
+    y_backcast_values = []
+    for i in range(backcasts.shape[0]):
+        y_backcast_values.extend(backcasts[i, :].tolist())
+    y_forecast_values = []
+    for i in range(forecasts.shape[0]):
+        y_forecast_values.extend(forecasts[i, :].tolist())
+
+    x_values = np.arange(len(y_backcast_values))
+    ax[0].plot(x_values, np.array(y_backcast_values), "b-")
+    ax[0].set_xlabel("Time")
+    ax[0].set_ylabel("Observations")
+    ax[0].set_title("Backcast: normalization and deseasonalization")
+    x_values = np.arange(len(y_forecast_values))
+    ax[1].set_title("Forecast: normalization and deseasonalization")
+    ax[1].plot(x_values, np.array(y_forecast_values), "r-")
+    ax[1].set_xlabel("Time")
+    ax[1].set_ylabel("Observations")
+    plt.savefig(path / "windows.png")
     plt.tight_layout()
     sns.despine()
     plt.show()

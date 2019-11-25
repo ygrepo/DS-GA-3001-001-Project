@@ -12,8 +12,9 @@ def get_config(interval):
         "percentile": 50,
         "training_percentile": 45,
         "add_nl_layer": True,
-        "rnn_cell_type": "LSTM",
-        "learning_rate": 1e-3,
+        "rnn_cell_type": "GRU",
+        "learning_rate": 1e-1,
+        #"learning_rate": 1e-3,
         "learning_rates": ((10, 1e-4)),
         "num_of_train_epochs": 100,
         "num_of_train_epochs_sampling": 100,
@@ -32,7 +33,7 @@ def get_config(interval):
         "sample": True,
         "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
-        "save_model": SAVE_LOAD_TYPE.NO_ACTION,
+        "save_model": SAVE_LOAD_TYPE.MODEL_PARAMETERS,
         "plot_ts": True
     }
 
@@ -46,7 +47,7 @@ def get_config(interval):
             "input_size": 4,
             "output_size": 8,
             "level_variability_penalty": 80,
-            #"sample_ids": [],
+            "sample_ids": [],
             "sample_ids": ["Q90"],
             #"sample_ids": ["Q66"],
         })

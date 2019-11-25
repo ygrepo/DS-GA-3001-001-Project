@@ -28,7 +28,6 @@ class ESRNNTrainer(BaseTrainer):
         loss.backward()
         nn.utils.clip_grad_value_(self.model.parameters(), self.config["gradient_clipping"])
         self.optimizer.step()
-        self.scheduler.step()
         return float(loss)
 
     def val(self, file_path, testing, debugging, figure_path):
@@ -108,5 +107,5 @@ class ESRNNTrainer(BaseTrainer):
                                                                         testing=testing)
             original_ts = torch.cat((train, hold_out_act), axis=1)
             predicted_ts = torch.cat((train, hold_out_pred), axis=1)
-            plot_ts(self.run_id, original_ts, predicted_ts, ts_labels, cats, self.figure_path,
+            plot_ts(original_ts, predicted_ts, ts_labels, cats, self.figure_path,
                     number_to_plot=train.shape[0])

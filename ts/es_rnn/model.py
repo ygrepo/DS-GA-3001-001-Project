@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from ts.es_rnn.DRNN import DRNN
-from ts.utils.helper_funcs import plot_levels_seasonalities
+from ts.utils.helper_funcs import plot_levels_seasonalities, plot_windows
 
 class ESRNN(nn.Module):
     def __init__(self, num_series, config):
@@ -28,6 +28,8 @@ class ESRNN(nn.Module):
         self.nl_layer = nn.Linear(config["state_hsize"],
                                   config["state_hsize"])
         self.act = nn.Tanh()
+        self.dropout_1 = nn.Dropout(0.2)
+        self.dropout_2 = nn.Dropout(0.2)
         self.scoring = nn.Linear(config["state_hsize"], config["output_size"])
 
         self.logistic = nn.Sigmoid()
@@ -124,6 +126,10 @@ class ESRNN(nn.Module):
         window_input = torch.cat([i.unsqueeze(0) for i in window_input_list], dim=0)
         window_output = torch.cat([i.unsqueeze(0) for i in window_output_list], dim=0)
 
+        if debugging:
+            plot_windows(window_input, window_output, figure_path)
+
+
         self.train()
         network_pred = self.series_forward(window_input[:-self.config["output_size"]])
         network_act = window_output
@@ -151,9 +157,11 @@ class ESRNN(nn.Module):
 
     def series_forward(self, data):
         data = self.resid_drnn(data)
+        data = self.dropout_1(data)
         if self.add_nl_layer:
             data = self.nl_layer(data)
             data = self.act(data)
+            data = self.dropout_2(data)
         data = self.scoring(data)
         return data
 
@@ -171,9 +179,10 @@ class ResidualDRNN(nn.Module):
             else:
                 input_size = self.config["state_hsize"]
 
+            n_layers = len(self.config["dilations"][grp_num])
             l = DRNN(input_size,
                      self.config["state_hsize"],
-                     n_layers=len(self.config["dilations"][grp_num]),
+                     n_layers=n_layers,
                      dilations=self.config["dilations"][grp_num],
                      cell_type=self.config["rnn_cell_type"])
 

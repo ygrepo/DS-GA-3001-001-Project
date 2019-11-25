@@ -12,7 +12,7 @@ from ts.es_rnn.model import ESRNN
 from ts.es_rnn.trainer import ESRNNTrainer
 from ts.utils.data_loading import SeriesDataset
 from ts.utils.helper_funcs import MODEL_TYPE, set_seed, create_datasets, generate_timeseries_length_stats, \
-    filter_timeseries, SAVE_LOAD_TYPE
+    filter_timeseries
 
 set_seed(0)
 
