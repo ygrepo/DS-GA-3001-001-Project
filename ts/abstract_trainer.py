@@ -95,9 +95,9 @@ class BaseTrainer(nn.Module):
                             and self.config["sample_ids"]:
                         plot_stacks(self.run_id, self.figure_path, self.model)
 
-                    if self.model_name == MODEL_TYPE.ESRNN.value and self.plot_ts_enabled() \
-                            and self.config["sample_ids"]:
-                        self.val(file_path, testing=True, debugging=True, figure_path=self.figure_path)
+                    #if self.model_name == MODEL_TYPE.ESRNN.value and self.plot_ts_enabled() \
+                    #        and self.config["sample_ids"]:
+                    #    self.val(file_path, testing=True, debugging=True, figure_path=self.figure_path)
                     break
                 else:
                     loss_repeat_counter += 1

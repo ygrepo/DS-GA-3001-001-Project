@@ -32,7 +32,7 @@ def get_config(interval):
         "sample": True,
         "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
-        "save_model": SAVE_LOAD_TYPE.MODEL_PARAMETERS,
+        "save_model": SAVE_LOAD_TYPE.NO_ACTION,
         "plot_ts": True
     }
 
@@ -47,7 +47,8 @@ def get_config(interval):
             "output_size": 8,
             "level_variability_penalty": 80,
             #"sample_ids": [],
-            "sample_ids": ["Q66"],
+            "sample_ids": ["Q90"],
+            #"sample_ids": ["Q66"],
         })
     elif interval == "Monthly":
         config.update({
