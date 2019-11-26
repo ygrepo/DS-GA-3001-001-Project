@@ -23,11 +23,11 @@ def get_config(interval):
         "print_output_stats": 3,
         "lr_anneal_rate": 0.5,
         "lr_anneal_step": 5,
-        "sample": True,
+        "sample": False,
         "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
         "save_model": SAVE_LOAD_TYPE.MODEL_PARAMETERS,
-        "plot_ts": True
+        "plot_ts": False
     }
 
     if interval == "Quarterly":
@@ -72,7 +72,7 @@ def get_config(interval):
         })
     elif interval == "Daily":
         config.update({
-            "learning_rate": 1e-2,
+            "learning_rate": 1e-1,
             "learning_rates": ((10, 1e-4)),
             "min_learning_rate": 0.0001,
             "lr_ratio": sqrt(10),
@@ -92,7 +92,7 @@ def get_config(interval):
     elif interval == "Yearly":
 
         config.update({
-            "learning_rate": 1e-2,
+            "learning_rate": 1e-1,
             "learning_rates": ((10, 1e-4)),
             "min_learning_rate": 0.0001,
             "lr_ratio": sqrt(10),
@@ -111,13 +111,13 @@ def get_config(interval):
         })
     elif interval == "Weekly":
         config.update({
-            "learning_rate": 1e-2,
+            "learning_rate": 1e-1,
             "learning_rates": ((10, 1e-4)),
             "min_learning_rate": 0.0001,
             "lr_ratio": sqrt(10),
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
-            "chop_val": 25,
+            "chop_val": 72,
             "variable": "Weekly",
             "dilations": ((1, 14), (14, 28)),
             "state_hsize": 60,
@@ -130,13 +130,13 @@ def get_config(interval):
         })
     elif interval == "Hourly":
         config.update({
-            "learning_rate": 1e-2,
+            "learning_rate": 1e-1,
             "learning_rates": ((10, 1e-4)),
             "min_learning_rate": 0.0001,
             "lr_ratio": sqrt(10),
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
-            "chop_val": 25,
+            "chop_val": 72,
             "variable": "Hourly",
             "dilations": ((1, 24), (24, 48)),
             "state_hsize": 60,

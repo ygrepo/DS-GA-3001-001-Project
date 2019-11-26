@@ -30,7 +30,7 @@ LOG_DIR = Path("logs/" + MODEL_TYPE.ESRNN.value)
 FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.ESRNN.value)
 
 print("loading config")
-config = get_config("Quarterly")
+config = get_config("Hourly")
 print("Frequency:{}".format(config["variable"]))
 
 print("loading data")
