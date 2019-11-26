@@ -30,6 +30,8 @@ class ExactGPModel(gpytorch.models.ExactGP):
 
 # initialize likelihood and model
 likelihood = gpytorch.likelihoods.GaussianLikelihood(batch_size=4)
+
+print(train_x.shape, train_y.shape)
 model = ExactGPModel(train_x, train_y, likelihood)
 
 # Find optimal model hyperparameters

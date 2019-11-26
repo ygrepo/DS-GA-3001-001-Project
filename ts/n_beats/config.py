@@ -45,7 +45,7 @@ def get_config(interval):
             "min_epochs_before_changing_lrate": 2,
             "dropout": 0.2,
             "sample_ids": [],
-            #"sample_ids": ["Q99"],
+            # "sample_ids": ["Q99"],
         })
     elif interval == "Monthly":
         config.update({
@@ -85,7 +85,7 @@ def get_config(interval):
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
             "dropout": 0.2,
-            #"sample_ids": [],
+            # "sample_ids": [],
             "sample_ids": ["D404"],
         })
     elif interval == "Yearly":
@@ -107,7 +107,7 @@ def get_config(interval):
             "min_epochs_before_changing_lrate": 2,
             "dropout": 0.2,
             "sample_ids": [],
-            #"sample_ids": ["Y3974"],
+            # "sample_ids": ["Y3974"],
         })
     elif interval == "Weekly":
         config.update({
@@ -126,8 +126,8 @@ def get_config(interval):
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
             "dropout": 0.2,
-            #"sample_ids": [],
-             "sample_ids": ["W246"],
+            # "sample_ids": [],
+            "sample_ids": ["W246"],
         })
     elif interval == "Hourly":
         config.update({
@@ -146,7 +146,7 @@ def get_config(interval):
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
             "dropout": 0.2,
-            #"sample_ids": [],
+            # "sample_ids": [],
             "sample_ids": ["H344"],
         })
     else:

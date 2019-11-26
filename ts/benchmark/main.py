@@ -26,8 +26,10 @@ def main():
     FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.BENCHMARK.value)
 
     print("Loading config")
-    config = get_config("Monthly")
+    config = get_config("Daily")
     print("Frequency:{}".format(config["variable"]))
+    forecast_length = config["output_size"]
+    backcast_length = 1 * forecast_length
 
     print("loading data")
     info = pd.read_csv(str(BASE_DIR / "M4info.csv"))
@@ -36,17 +38,33 @@ def main():
 
     sample = config["sample"]
     sample_ids = config["sample_ids"] if "sample_ids" in config else []
-    train, ts_labels, _, test, test_idx = create_datasets(train_path, test_path, config["output_size"],
-                                                            create_val_dataset=False,
+    train, ts_labels, val, test, test_idx = create_datasets(train_path, test_path, config["output_size"],
+                                                            create_val_dataset=True,
                                                             sample_ids=sample_ids, sample=sample,
                                                             sampling_size=4)
     generate_timeseries_length_stats(train)
-    print("#.train:{}, #.test ts:{}".format(len(train), len(test)))
+    print("#.Train before chopping:{}".format(train.shape[0]))
+    train_before_chopping_count = train.shape[0]
+    chop_val = determine_chop_value(train, backcast_length, forecast_length)
+    print("Chop value:{:6.3f}".format(chop_val))
+    train, val, test, data_infocat_ohe, data_infocat_headers, data_info_cat = \
+        filter_timeseries(info, config["variable"], sample, ts_labels, train, chop_val, val, test)
+    print("#.Train after chopping:{}, lost:{:5.2f}%".format(len(train),
+                                                            (train_before_chopping_count - len(
+                                                                train)) / train_before_chopping_count * 100.))
+    print("#.train:{}, #.validation ts:{}, #.test ts:{}".format(len(train), len(val), len(test)))
+
+    dataset = SeriesDataset(data_infocat_ohe, data_infocat_headers, data_info_cat, ts_labels,
+                            train, val, test, config["device"])
+
+    # dataloader = DataLoader(dataset, batch_size=config["batch_size"], collate_fn=collate_lines, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=False)
     reload = config["reload"]
     add_run_id = config["add_run_id"]
     criterion = PinballLoss(config["training_tau"], config["output_size"] * config["batch_size"], config["device"])
-    trainer = Trainer(MODEL_TYPE.BENCHMARK.value, None, None, criterion, run_id, add_run_id, config,
-                      csv_path=LOG_DIR, figure_path=FIGURE_PATH,
+    trainer = Trainer(MODEL_TYPE.BENCHMARK.value, None, None, criterion, dataloader, run_id, add_run_id, config,
+                      forecast_length, backcast_length,
+                      ohe_headers=dataset.data_info_cat_headers, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
                       sampling=sample, reload=reload)
     trainer.train_epochs()
 

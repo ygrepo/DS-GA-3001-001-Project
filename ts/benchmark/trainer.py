@@ -13,20 +13,25 @@ from ts.benchmark.model import SpectralMixtureGPModel
 
 
 class Trainer(BaseTrainer):
-    def __init__(self, model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, ohe_headers,
-                 csv_path, figure_path,
-                 sampling, reload):
+    def __init__(self, model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, forecast_length,
+                 backcast_length, ohe_headers, csv_path, figure_path, sampling, reload):
         super().__init__(model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, ohe_headers,
-                         csv_path, figure_path, sampling, reload)
+                         csv_path, figure_path, sampling, reload=reload)
+        self.forecast_length = forecast_length
+        self.backcast_length = backcast_length
 
     def train_batch(self, train, val, test, info_cat, idx):
 
-        #self.model.covar_module.initialize_from_data(train, val)
-        y_train = train.view(1,-1,1)
-        x_train = np.array(range(0, train.shape[1]))
-        #val = val.view(1,-1,1)
-        likelihood = gpytorch.likelihoods.GaussianLikelihood(batch_size=y_train.shape[1])
-        self.model = SpectralMixtureGPModel(x_train, y_train, likelihood, num_outputs=y_train.shape[1])
+        # self.model.covar_module.initialize_from_data(train, val)
+        train = train.type(torch.float)
+        x_train = np.array(range(train.shape[1])).astype(dtype=np.float)
+        x_train = x_train[:, np.newaxis]
+        x_train = x_train[np.newaxis, :]
+        x_train = np.repeat(x_train, train.shape[0], axis=0)
+        x_train = torch.from_numpy(x_train)
+        # val = val.view(1,-1,1)
+        likelihood = gpytorch.likelihoods.GaussianLikelihood(batch_size=x_train.shape[0])
+        self.model = SpectralMixtureGPModel(x_train, train, likelihood, num_outputs=x_train.shape[0])
         self.model.train()
         self.model.likelihood.train()
         self.mll = mlls.ExactMarginalLogLikelihood(self.model.likelihood, self.model)
@@ -36,12 +41,11 @@ class Trainer(BaseTrainer):
                                                          gamma=self.config["lr_anneal_rate"])
 
         self.optimizer.zero_grad()
-        print(x_train.shape, y_train.shape)
-        forecast = self.model(train)
-        loss = -self.mll(forecast, val)
+        print(x_train.shape, train.shape)
+        forecast = self.model(x_train)
+        loss = -self.mll(forecast, train)
         loss.backward()
         self.optimizer.step()
-        self.scheduler.step()
         return float(loss)
 
     def val(self, file_path, testing=False):
@@ -105,3 +109,11 @@ class Trainer(BaseTrainer):
             grouped_results.to_csv(grouped_path, header=True)
 
         return hold_out_loss
+
+
+if __name__ == "__main__":
+    x = np.array(range(10))
+    x = x[:, np.newaxis]
+    x = x[np.newaxis, :]
+    x = np.repeat(x, 4, axis=0)
+    print(x)
