@@ -20,7 +20,7 @@ def get_config(interval):
         "print_output_stats": 3,
         "lr_anneal_rate": 0.5,
         "lr_anneal_step": 5,
-        "sample": False,
+        "sample": True,
         "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
         "save_model": SAVE_LOAD_TYPE.NO_ACTION,

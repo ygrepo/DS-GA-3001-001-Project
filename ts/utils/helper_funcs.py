@@ -244,6 +244,8 @@ def plot_stacks(run_id, path, model):
         stack = model.stacks[stack_id]
         for block_id in range(len(stack)):
             block = stack[block_id]
+            if not block.backcasts or not block.forecasts:
+                continue
             ax = axes[block_id][stack_id]
             plot_block_ts(ax, block)
             ax.set_xlabel("Time")

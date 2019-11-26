@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
+from torch.nn import SmoothL1Loss
 
 from ts.n_beats.config import get_config
 from ts.n_beats.model import NBeatsNet
@@ -70,6 +71,7 @@ def main():
     add_run_id = config["add_run_id"]
     optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
     criterion = PinballLoss(config["training_tau"], config["output_size"] * config["batch_size"], config["device"])
+    #criterion = SmoothL1Loss()
     trainer = Trainer(MODEL_TYPE.NBEATS.value, model, optimizer, criterion, dataloader, run_id, add_run_id, config,
                       forecast_length, backcast_length,
                       ohe_headers=dataset.data_info_cat_headers, csv_path=LOG_DIR, figure_path=FIGURE_PATH,

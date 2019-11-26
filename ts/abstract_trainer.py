@@ -28,9 +28,9 @@ class BaseTrainer(nn.Module):
         # self.optimizer = torch.optim.ASGD(self.model.parameters(), lr=config["learning_rate"])
         if optimizer:
             self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
-                                                              step_size=config["lr_anneal_step"],
-                                                              gamma=config["lr_anneal_rate"])
-            #self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=5, verbose=True)
+                                                             step_size=config["lr_anneal_step"],
+                                                             gamma=config["lr_anneal_rate"])
+            # self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=2, verbose=True)
         else:
             self.scheduler = None
         self.criterion = criterion
@@ -91,18 +91,26 @@ class BaseTrainer(nn.Module):
                 file_path.mkdir(parents=True, exist_ok=True)
                 with open(file_path_validation_loss, "w") as f:
                     f.write("epoch,training_loss,validation_loss\n")
-            if e == self.max_epochs - 1 and self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled():
+            if epoch_loss != 0 and e == self.max_epochs - 1 \
+                    and self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled():
                 plot_stacks(self.run_id, self.figure_path, self.model)
 
             epoch_val_loss = self.val(file_path, testing=True, debugging=False, figure_path=self.figure_path)
             with open(file_path_validation_loss, "a") as f:
                 f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
+
             self.scheduler.step()
+            # self.scheduler.step(epoch_val_loss)
+            print("LR:", self.scheduler.get_lr())
+
+            print("[VALIDATION]  Epoch [%d/%d]   Loss: %.4f" % (self.epochs, self.max_epochs, epoch_val_loss))
+            info = {"Validation loss": epoch_val_loss}
+            self.log_values(info)
 
             if isclose(epoch_val_loss, prev_loss, rel_tol=1e-4):
                 loss_repeat_counter += 1
                 if loss_repeat_counter >= max_loss_repeat:
-                    print("Loss not decreasing for last {} times".format(loss_repeat_counter))
+                    print("Validation loss not decreasing for last {} times".format(loss_repeat_counter))
                     if self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled() \
                             and self.config["sample_ids"]:
                         plot_stacks(self.run_id, self.figure_path, self.model)
@@ -136,7 +144,7 @@ class BaseTrainer(nn.Module):
 
         # LOG EPOCH LEVEL INFORMATION
         print("[TRAIN]  Epoch [%d/%d]   Loss: %.4f" % (self.epochs, self.max_epochs, epoch_loss))
-        info = {"loss": epoch_loss}
+        info = {"Training loss": epoch_loss}
 
         self.log_values(info)
         self.log_hists()

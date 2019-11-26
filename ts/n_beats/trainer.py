@@ -44,7 +44,6 @@ class Trainer(BaseTrainer):
         loss.backward()
         nn.utils.clip_grad_value_(self.model.parameters(), self.config["gradient_clipping"])
         self.optimizer.step()
-        self.scheduler.step()
         return float(loss)
 
     def val(self, file_path, testing, debugging, figure_path):
