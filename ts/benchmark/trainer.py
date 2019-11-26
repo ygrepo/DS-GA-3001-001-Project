@@ -23,12 +23,12 @@ class Trainer(BaseTrainer):
     def train_batch(self, train, val, test, info_cat, idx):
 
         # self.model.covar_module.initialize_from_data(train, val)
-        train = train.type(torch.float)
+        train = train.double()
         x_train = np.array(range(train.shape[1])).astype(dtype=np.float)
         x_train = x_train[:, np.newaxis]
         x_train = x_train[np.newaxis, :]
         x_train = np.repeat(x_train, train.shape[0], axis=0)
-        x_train = torch.from_numpy(x_train)
+        x_train = torch.from_numpy(x_train).double()
         # val = val.view(1,-1,1)
         likelihood = gpytorch.likelihoods.GaussianLikelihood(batch_size=x_train.shape[0])
         self.model = SpectralMixtureGPModel(x_train, train, likelihood, num_outputs=x_train.shape[0])
@@ -42,11 +42,12 @@ class Trainer(BaseTrainer):
 
         self.optimizer.zero_grad()
         print(x_train.shape, train.shape)
+        self.model.double()
         forecast = self.model(x_train)
         loss = -self.mll(forecast, train)
-        loss.backward()
+        loss.mean().backward()
         self.optimizer.step()
-        return float(loss)
+        return float(loss.mean())
 
     def val(self, file_path, testing=False):
         self.model.eval()
