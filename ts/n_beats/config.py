@@ -31,7 +31,7 @@ def get_config(interval):
         config.update({
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
             "thetas_dims": [2, 8],
-            "nb_blocks_per_stack": 3,
+            "nb_blocks_per_stack": 5,
             "hidden_layer_units": 128,
             "share_weights_in_stack": False,
             "variable": "Quarterly",

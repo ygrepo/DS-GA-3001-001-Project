@@ -1,4 +1,5 @@
 import time
+import math
 from pathlib import Path
 
 import numpy as np
@@ -144,10 +145,10 @@ class BaseTrainer(nn.Module):
 
         # LOG EPOCH LEVEL INFORMATION
         print("[TRAIN]  Epoch [%d/%d]   Loss: %.4f" % (self.epochs, self.max_epochs, epoch_loss))
-        info = {"Training loss": epoch_loss}
-
-        self.log_values(info)
-        self.log_hists()
+        if not math.isnan(epoch_loss):
+            info = {"Training loss": epoch_loss}
+            self.log_values(info)
+            self.log_hists()
 
         return epoch_loss
 
