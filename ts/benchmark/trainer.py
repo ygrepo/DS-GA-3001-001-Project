@@ -25,7 +25,7 @@ class Trainer:
     def train(self):
         self.figure_path.mkdir(parents=True, exist_ok=True)
         start_time = time.time()
-        ts_label = "Q66"
+        ts_label = self.config["sample_ids"][0]
         (train, val, test, info_cat, ts_labels, idx) = next(iter(self.data_loader))
 
         data_y = np.squeeze(torch.cat((train, val), dim=1))
@@ -85,7 +85,7 @@ class Trainer:
             ax.set_ylabel("Observations")
             mape = sMAPE(observed_pred.mean[-self.config["output_size"]:],
                          test_data_y[-self.config["output_size"]:], self.config["output_size"])
-            ax.set_title("Time Series:{}, MAPE:{:8.3F}".format(ts_label, mape))
+            ax.set_title("Time Series:{}, MAPE:{:8.2f}, N samples:{}".format(ts_label, mape, N_samples))
             #plt.show()
             plt.tight_layout()
             sns.despine()

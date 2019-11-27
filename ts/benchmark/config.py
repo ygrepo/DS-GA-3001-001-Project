@@ -38,13 +38,7 @@ def get_config(interval):
             #"sample_ids": [],
             "sample_ids": ["Q66"],
         })
-    elif interval == "Monthly":
         config.update({
-            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
-            "thetas_dims": [2, 8],
-            "nb_blocks_per_stack": 4,
-            "hidden_layer_units": 128,
-            "share_weights_in_stack": True,
             "chop_val": 72,
             "variable": "Monthly",
             "seasonality": 12,
@@ -55,8 +49,9 @@ def get_config(interval):
             "lr_ratio": sqrt(10),
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
-            "dropout": 0.2,
             # "sample_ids": [],
+            "lr_anneal_rate": 0.5,
+            "lr_anneal_step": 5,
             "sample_ids": ["M1"],
         })
     elif interval == "Daily":
