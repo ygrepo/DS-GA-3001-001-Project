@@ -75,11 +75,6 @@ def get_config(interval):
     elif interval == "Yearly":
 
         config.update({
-            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
-            "thetas_dims": [3, 8],
-            "nb_blocks_per_stack": 3,
-            "hidden_layer_units": 256,
-            "share_weights_in_stack": True,
             "variable": "Yearly",
             "seasonality": 1,
             "output_size": 6,
@@ -91,16 +86,12 @@ def get_config(interval):
             "min_epochs_before_changing_lrate": 2,
             "dropout": 0.2,
             "chop_val": 25,
-            "sample_ids": [],
-            # "sample_ids": ["Y3974"],
+            "min_samples": 20,
+            #"sample_ids": [],
+            "sample_ids": ["Y1"],
         })
     elif interval == "Weekly":
         config.update({
-            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
-            "thetas_dims": [2, 8],
-            "nb_blocks_per_stack": 3,
-            "hidden_layer_units": 128,
-            "share_weights_in_stack": True,
             "variable": "Weekly",
             "seasonality": 1,
             "output_size": 13,
