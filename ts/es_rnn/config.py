@@ -66,8 +66,8 @@ def get_config(interval):
             "input_size": 12,
             "output_size": 18,
             "level_variability_penalty": 50,
-            "sample_ids": [],
-            # "sample_ids": ["M1"],
+            #"sample_ids": [],
+             "sample_ids": ["M1"],
         })
     elif interval == "Daily":
         config.update({
