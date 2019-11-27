@@ -65,19 +65,7 @@ class BaseTrainer(nn.Module):
         prev_loss = float("-inf")
         for e in range(self.max_epochs):
 
-            if self.reload != SAVE_LOAD_TYPE.NO_ACTION:
-                epoch_loss = 0
-            else:
-                epoch_loss = self.train()
-
-            if self.save_model_enabled() and epoch_loss < max_loss:
-                print("Loss decreased, saving model!")
-                file_path = Path(".") / ("models/" + self.model_name)
-                if self.config["save_model"] == SAVE_LOAD_TYPE.MODEL:
-                    save_model(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
-                elif self.config["save_model"] == SAVE_LOAD_TYPE.MODEL_PARAMETERS:
-                    save_model_parameters(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
-                max_loss = epoch_loss
+            epoch_loss = self.train()
 
             file_path = self.csv_save_path / "grouped_results" / self.run_id / self.prod_str
             file_path_validation_loss = file_path / "validation_losses.csv"
@@ -93,6 +81,15 @@ class BaseTrainer(nn.Module):
             epoch_val_loss = self.val(file_path, testing=True, debugging=False, figure_path=self.figure_path)
             with open(file_path_validation_loss, "a") as f:
                 f.write(",".join([str(e), str(epoch_loss), str(epoch_val_loss)]) + "\n")
+
+            if self.save_model_enabled() and epoch_val_loss < max_loss:
+                print("Loss decreased, saving model!")
+                file_path = Path(".") / ("models/" + self.model_name)
+                if self.config["save_model"] == SAVE_LOAD_TYPE.MODEL:
+                    save_model(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
+                elif self.config["save_model"] == SAVE_LOAD_TYPE.MODEL_PARAMETERS:
+                    save_model_parameters(file_path, self.model, self.optimizer, self.run_id, self.add_run_id)
+                max_loss = epoch_val_loss
 
             self.scheduler.step()
             # self.scheduler.step(epoch_val_loss)

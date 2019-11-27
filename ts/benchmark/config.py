@@ -23,7 +23,6 @@ def get_config(interval):
 
     if interval == "Quarterly":
         config.update({
-            "chop_val": 72,
             "variable": "Quarterly",
             "seasonality": 4,
             "output_size": 8,
@@ -35,11 +34,12 @@ def get_config(interval):
             "min_epochs_before_changing_lrate": 2,
             "lr_anneal_rate": 0.5,
             "lr_anneal_step": 5,
+            "chop_val": 72,
+            "min_samples": 70,
             #"sample_ids": [],
             "sample_ids": ["Q66"],
         })
         config.update({
-            "chop_val": 72,
             "variable": "Monthly",
             "seasonality": 12,
             "output_size": 18,
@@ -52,15 +52,12 @@ def get_config(interval):
             # "sample_ids": [],
             "lr_anneal_rate": 0.5,
             "lr_anneal_step": 5,
+            "chop_val": 72,
+            "min_samples": 70,
             "sample_ids": ["M1"],
         })
     elif interval == "Daily":
         config.update({
-            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
-            "thetas_dims": [2, 8],
-            "nb_blocks_per_stack": 3,
-            "hidden_layer_units": 128,
-            "share_weights_in_stack": False,
             "variable": "Daily",
             "seasonality": 7,
             "output_size": 14,
@@ -70,9 +67,10 @@ def get_config(interval):
             "lr_ratio": sqrt(10),
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
-            "dropout": 0.2,
+            "chop_val": 200,
+            "min_samples": 200,
             # "sample_ids": [],
-            "sample_ids": ["D404"],
+            "sample_ids": ["D1"],
         })
     elif interval == "Yearly":
 
@@ -92,6 +90,7 @@ def get_config(interval):
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
             "dropout": 0.2,
+            "chop_val": 25,
             "sample_ids": [],
             # "sample_ids": ["Y3974"],
         })
@@ -112,6 +111,7 @@ def get_config(interval):
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
             "dropout": 0.2,
+            "chop_val": 72,
             # "sample_ids": [],
             "sample_ids": ["W246"],
         })
@@ -132,6 +132,7 @@ def get_config(interval):
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
             "dropout": 0.2,
+            "chop_val": 72,
             # "sample_ids": [],
             "sample_ids": ["H344"],
         })

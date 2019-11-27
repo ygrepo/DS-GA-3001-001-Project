@@ -311,7 +311,7 @@ def plot_ts(original_ts, predicted_ts, ts_labels, cats, path, number_to_plot=1):
     plt.savefig(path / "time_series.png")
     plt.tight_layout()
     sns.despine()
-    plt.show()
+    #plt.show()
 
 
 def plot_levels_seasonalities(train, levels, seasonalities, path=None):

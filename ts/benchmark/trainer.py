@@ -29,7 +29,7 @@ class Trainer:
         (train, val, test, info_cat, ts_labels, idx) = next(iter(self.data_loader))
 
         data_y = np.squeeze(torch.cat((train, val), dim=1))
-        N_samples = min(50, data_y.shape[0])
+        N_samples = min(self.config["min_samples"], data_y.shape[0])
         sample_indices = np.random.choice(data_y.shape[0], N_samples, replace=False)
         data_x = np.arange(data_y.shape[0], dtype=float)
         train_x = torch.from_numpy(data_x[sample_indices]).float()
@@ -65,6 +65,8 @@ class Trainer:
         # The gpytorch.settings.fast_pred_var flag activates LOVE (for fast variances)
         with torch.no_grad(), gpytorch.settings.fast_pred_var():
             # Make predictions
+
+
             observed_pred = likelihood(model(test_x))
 
             # Initialize plot

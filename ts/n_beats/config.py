@@ -21,7 +21,7 @@ def get_config(interval):
         "sample": True,
         "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
-        "save_model": SAVE_LOAD_TYPE.NO_ACTION,
+        "save_model": SAVE_LOAD_TYPE.MODEL_PARAMETERS,
         "plot_ts": True,
     }
 
@@ -52,7 +52,7 @@ def get_config(interval):
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
-            "hidden_layer_units": 512,
+            "hidden_layer_units": 256,
             "share_weights_in_stack": True,
             "chop_val": 72,
             "variable": "Monthly",
@@ -75,7 +75,7 @@ def get_config(interval):
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
-            "hidden_layer_units": 128,
+            "hidden_layer_units": 256,
             "share_weights_in_stack": False,
             "variable": "Daily",
             "seasonality": 7,
@@ -90,7 +90,7 @@ def get_config(interval):
             "lr_anneal_step": 5,
             "dropout": 0.2,
             # "sample_ids": [],
-            "sample_ids": ["D404"],
+            "sample_ids": ["D1"],
         })
     elif interval == "Yearly":
 
