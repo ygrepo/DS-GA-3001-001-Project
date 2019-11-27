@@ -105,8 +105,8 @@ def get_config(interval):
             "input_size": 4,
             "output_size": 6,
             "level_variability_penalty": 0,
-            "sample_ids": [],
-            # "sample_ids": ["Y3974"],
+            #"sample_ids": [],
+            "sample_ids": ["Y1"],
         })
     elif interval == "Weekly":
         config.update({

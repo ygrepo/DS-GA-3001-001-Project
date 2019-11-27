@@ -60,7 +60,7 @@ class BaseTrainer(nn.Module):
             self.optimizer = optimizer
         if self.reload == SAVE_LOAD_TYPE.MODEL_PARAMETERS:
             load_model_parameters(file_path, self.model, self.optimizer)
-        max_loss_repeat = 3
+        max_loss_repeat = 4
         loss_repeat_counter = 1
         prev_loss = float("-inf")
         for e in range(self.max_epochs):

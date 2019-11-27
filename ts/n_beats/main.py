@@ -12,7 +12,7 @@ from ts.n_beats.trainer import Trainer
 from ts.utils.data_loading import SeriesDataset
 from ts.utils.helper_funcs import MODEL_TYPE, set_seed, create_datasets, determine_chop_value, filter_timeseries, \
     generate_timeseries_length_stats
-from ts.utils.loss_modules import PinballLoss
+from ts.utils.loss_modules import PinballLoss, MapeLoss
 
 
 def main():
@@ -26,7 +26,7 @@ def main():
     FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.NBEATS.value)
 
     print("Loading config")
-    config = get_config("Daily")
+    config = get_config("Yearly")
     print("Frequency:{}".format(config["variable"]))
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
@@ -70,6 +70,7 @@ def main():
     reload = config["reload"]
     add_run_id = config["add_run_id"]
     optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
+    #criterion = MapeLoss(config["output_size"], config["device"])
     criterion = PinballLoss(config["training_tau"], config["output_size"] * config["batch_size"], config["device"])
     #criterion = SmoothL1Loss()
     trainer = Trainer(MODEL_TYPE.NBEATS.value, model, optimizer, criterion, dataloader, run_id, add_run_id, config,

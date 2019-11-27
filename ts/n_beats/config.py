@@ -88,7 +88,7 @@ def get_config(interval):
             "min_epochs_before_changing_lrate": 2,
             "lr_anneal_rate": 0.5,
             "lr_anneal_step": 5,
-            "dropout": 0.2,
+            "dropout": 0.5,
             # "sample_ids": [],
             "sample_ids": ["D1"],
         })
@@ -96,7 +96,7 @@ def get_config(interval):
 
         config.update({
             "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
-            "thetas_dims": [3, 8],
+            "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 256,
             "share_weights_in_stack": True,
@@ -112,8 +112,8 @@ def get_config(interval):
             "lr_anneal_rate": 0.5,
             "lr_anneal_step": 5,
             "dropout": 0.2,
-            "sample_ids": [],
-            # "sample_ids": ["Y3974"],
+            #"sample_ids": [],
+            "sample_ids": ["Y1"],
         })
     elif interval == "Weekly":
         config.update({

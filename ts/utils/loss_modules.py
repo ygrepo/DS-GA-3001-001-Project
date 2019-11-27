@@ -55,6 +55,19 @@ class PinballLoss(nn.Module):
 # pb = PinballLoss(0.5, 100)
 # pb(test1, test2)
 
+class MapeLoss(nn.Module):
+    def __init__(self,  output_size, device):
+        super(MapeLoss, self).__init__()
+        self.output_size = output_size
+        self.device = device
+
+    def forward(self, predictions, actuals):
+        preds = predictions.view(-1)
+        acts = actuals.view(-1)
+        sumf = torch.sum(torch.abs(preds - acts) / (torch.abs(preds) + torch.abs(acts)))
+        return ((2 * sumf) / self.output_size) * 100
+
+
 
 def non_sMAPE(predictions, actuals, output_size):
     sumf = 0
