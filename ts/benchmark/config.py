@@ -10,16 +10,10 @@ def get_config(interval):
     config = {
         "prod": True,
         "device": ("cuda" if torch.cuda.is_available() else "cpu"),
-        "percentile": 50,
-        "training_percentile": 45,
         "num_of_train_epochs": 100,
         "num_of_train_epochs_sampling": 100,
         "num_of_categories": 6,  # in data provided
         "batch_size": 1024,
-        "gradient_clipping": 20,
-        "print_output_stats": 3,
-        "lr_anneal_rate": 0.5,
-        "lr_anneal_step": 5,
         "sample": True,
         "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
@@ -39,7 +33,8 @@ def get_config(interval):
             "lr_ratio": sqrt(10),
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
-            "dropout": 0.2,
+            "lr_anneal_rate": 0.5,
+            "lr_anneal_step": 5,
             #"sample_ids": [],
             "sample_ids": ["Q66"],
         })
@@ -147,11 +142,6 @@ def get_config(interval):
         })
     else:
         print("I dont have that config. :(")
-
-    # config["input_size_i"] = config["input_size"]
-    config["output_size_i"] = config["output_size"]
-    config["tau"] = config["percentile"] / 100
-    config["training_tau"] = config["training_percentile"] / 100
 
     if not config["prod"]:
         config["batch_size"] = 10

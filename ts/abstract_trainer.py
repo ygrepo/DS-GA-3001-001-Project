@@ -1,5 +1,5 @@
-import time
 import math
+import time
 from pathlib import Path
 
 import numpy as np
@@ -17,23 +17,17 @@ class BaseTrainer(nn.Module):
                  sampling=False, reload=SAVE_LOAD_TYPE.NO_ACTION):
         super(BaseTrainer, self).__init__()
         self.model_name = model_name
-        if model:
-            self.model = model.to(config["device"])
-        else:
-            self.model = None
+        self.model = model.to(config["device"])
         self.config = config
         self.data_loader = dataloader
         self.sampling = sampling
         self.ohe_headers = ohe_headers
         self.optimizer = optimizer
         # self.optimizer = torch.optim.ASGD(self.model.parameters(), lr=config["learning_rate"])
-        if optimizer:
-            self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
-                                                             step_size=config["lr_anneal_step"],
-                                                             gamma=config["lr_anneal_rate"])
-            # self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=2, verbose=True)
-        else:
-            self.scheduler = None
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
+                                                         step_size=config["lr_anneal_step"],
+                                                         gamma=config["lr_anneal_rate"])
+        # self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=2, verbose=True)
         self.criterion = criterion
         self.epochs = 0
         self.max_epochs = config["num_of_train_epochs"]
@@ -131,8 +125,7 @@ class BaseTrainer(nn.Module):
         print("Total Training in mins: %5.2f" % ((time.time() - start_time) / 60))
 
     def train(self):
-        if self.model:
-            self.model.train()
+        self.model.train()
         epoch_loss = 0
         for batch_num, (train, val, test, info_cat, _, idx) in enumerate(self.data_loader):
             start = time.time()

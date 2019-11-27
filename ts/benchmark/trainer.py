@@ -1,28 +1,29 @@
-import copy
 import time
 
-import matplotlib.pyplot as plt
-
 import gpytorch
+import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
+import seaborn as sns
 import torch
 from gpytorch import mlls
 
-from ts.abstract_trainer import BaseTrainer
 from ts.benchmark.model import SpectralMixtureGPModel
-from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
+from ts.utils.loss_modules import sMAPE
 
 
-class Trainer(BaseTrainer):
-    def __init__(self, model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, forecast_length,
-                 backcast_length, ohe_headers, csv_path, figure_path, sampling, reload):
-        super().__init__(model_name, model, optimizer, criterion, dataloader, run_id, add_run_id, config, ohe_headers,
-                         csv_path, figure_path, sampling, reload=reload)
-        self.forecast_length = forecast_length
-        self.backcast_length = backcast_length
+class Trainer:
+    def __init__(self, model_name, dataloader, run_id, add_run_id, config, csv_path, figure_path):
+        super(Trainer, self).__init__()
+        self.model_name = model_name
+        self.config = config
+        self.data_loader = dataloader
+        self.run_id = str(run_id)
+        self.add_run_id = add_run_id
+        self.csv_save_path = csv_path
+        self.figure_path = figure_path
 
-    def train_epochs(self):
+    def train(self):
+        self.figure_path.mkdir(parents=True, exist_ok=True)
         start_time = time.time()
         ts_label = "Q66"
         (train, val, test, info_cat, ts_labels, idx) = next(iter(self.data_loader))
@@ -82,13 +83,12 @@ class Trainer(BaseTrainer):
             ax.legend(["Forecast", "Truth", "Samples", "Mean", "Confidence"])
             ax.set_xlabel("Time")
             ax.set_ylabel("Observations")
-            ax.set_title("Time Series:" + ts_label)
-            plt.show()
+            mape = sMAPE(observed_pred.mean[-self.config["output_size"]:],
+                         test_data_y[-self.config["output_size"]:], self.config["output_size"])
+            ax.set_title("Time Series:{}, MAPE:{:8.3F}".format(ts_label, mape))
+            #plt.show()
+            plt.tight_layout()
+            sns.despine()
+            plt.savefig(self.figure_path / (ts_label + "_time_series.png"), bbox_inches="tight")
 
-
-if __name__ == "__main__":
-    x = np.arange(10)
-    # x = x[:, np.newaxis]
-    # x = x[np.newaxis, :]
-    # x = np.repeat(x, 4, axis=0)
-    print(x)
+        print("Total Training in mins: %5.2f" % ((time.time() - start_time) / 60))

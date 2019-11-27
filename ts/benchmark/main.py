@@ -9,7 +9,6 @@ from ts.benchmark.trainer import Trainer
 from ts.utils.data_loading import SeriesDataset
 from ts.utils.helper_funcs import MODEL_TYPE, set_seed, create_datasets, generate_timeseries_length_stats, \
     filter_timeseries
-from ts.utils.loss_modules import PinballLoss
 
 
 def main():
@@ -58,14 +57,10 @@ def main():
 
     # dataloader = DataLoader(dataset, batch_size=config["batch_size"], collate_fn=collate_lines, shuffle=True)
     dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=False)
-    reload = config["reload"]
     add_run_id = config["add_run_id"]
-    criterion = PinballLoss(config["training_tau"], config["output_size"] * config["batch_size"], config["device"])
-    trainer = Trainer(MODEL_TYPE.BENCHMARK.value, None, None, criterion, dataloader, run_id, add_run_id, config,
-                      forecast_length, backcast_length,
-                      ohe_headers=dataset.data_info_cat_headers, csv_path=LOG_DIR, figure_path=FIGURE_PATH,
-                      sampling=sample, reload=reload)
-    trainer.train_epochs()
+    trainer = Trainer(MODEL_TYPE.BENCHMARK.value, dataloader, run_id, add_run_id, config, csv_path=LOG_DIR,
+                      figure_path=FIGURE_PATH)
+    trainer.train()
 
 
 if __name__ == "__main__":

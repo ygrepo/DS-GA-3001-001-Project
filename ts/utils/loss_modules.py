@@ -94,15 +94,16 @@ def mase(predictions, actuals, weight, H):
     return (sumf / H) * 100
 
 
-
 def np_MASE(predictions, actuals, weight, H):
     predictions = torch.from_numpy(np.array(predictions))
     actuals = torch.from_numpy(np.array(actuals))
     return float(mase(predictions, actuals, weight, H))
 
+
 def np_mase(ts, freq):
     ts = np.array(ts)
     return np.mean(np.abs(ts[freq:] - ts[:-freq]))
+
 
 def wQuantLoss(predictions, actuals, output_size, training_tau):
     sumf = 0
