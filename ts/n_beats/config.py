@@ -13,15 +13,15 @@ def get_config(interval):
         "percentile": 50,
         "training_percentile": 45,
         "num_of_train_epochs": 100,
-        "num_of_train_epochs_sampling": 100,
+        "num_of_train_epochs_sampling": 1,
         "num_of_categories": 6,  # in data provided
         "batch_size": 1024,
         "gradient_clipping": 20,
         "print_output_stats": 3,
         "sample": True,
-        "reload": SAVE_LOAD_TYPE.NO_ACTION,
+        "reload": SAVE_LOAD_TYPE.MODEL_PARAMETERS,
         "add_run_id": False,
-        "save_model": SAVE_LOAD_TYPE.MODEL_PARAMETERS,
+        "save_model": SAVE_LOAD_TYPE.NO_ACTION,
         "plot_ts": True,
     }
 

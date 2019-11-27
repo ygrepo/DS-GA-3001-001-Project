@@ -125,7 +125,7 @@ def get_config(interval):
             "output_size": 13,
             "level_variability_penalty": 0,
             # "sample_ids": [],
-            "sample_ids": ["W1"],
+            "sample_ids": ["W246"],
         })
     elif interval == "Hourly":
         config.update({
