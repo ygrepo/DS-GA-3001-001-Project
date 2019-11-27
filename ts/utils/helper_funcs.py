@@ -254,7 +254,7 @@ def plot_stacks(run_id, path, model):
             f_legend_str = ("forecast-{}-{}".format(block.block_type, block.id))
             ax.legend([b_legend_str, f_legend_str], loc="best")
 
-    plt.savefig(path / ("stack_" + run_id + ".png"))
+    plt.savefig(path / "stack.png")
 
     plt.tight_layout()
     sns.despine()
@@ -268,7 +268,7 @@ def plot_block_ts(ax, block):
         for i in range(backcasts.shape[0]):
             y_backcast_values.extend(backcasts[i, :].tolist())
     else:
-          y_backcast_values.extend(backcasts.tolist())
+        y_backcast_values.extend(backcasts.tolist())
     y_forecast_values = []
     forecasts = (block.forecasts[-1]).squeeze().cpu().detach().numpy()
     if forecasts.ndim > 1:
