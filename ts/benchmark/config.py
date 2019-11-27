@@ -84,7 +84,6 @@ def get_config(interval):
             "lr_ratio": sqrt(10),
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
-            "dropout": 0.2,
             "chop_val": 25,
             "min_samples": 20,
             #"sample_ids": [],
@@ -101,7 +100,6 @@ def get_config(interval):
             "lr_ratio": sqrt(10),
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
-            "dropout": 0.2,
             "chop_val": 72,
             "min_samples": 72,
             # "sample_ids": [],
@@ -109,11 +107,6 @@ def get_config(interval):
         })
     elif interval == "Hourly":
         config.update({
-            "stack_types": [BLOCK_TYPE.TREND, BLOCK_TYPE.SEASONALITY],
-            "thetas_dims": [2, 8],
-            "nb_blocks_per_stack": 3,
-            "hidden_layer_units": 128,
-            "share_weights_in_stack": False,
             "variable": "Hourly",
             "seasonality": 24,
             "output_size": 48,
@@ -123,8 +116,8 @@ def get_config(interval):
             "lr_ratio": sqrt(10),
             "lr_tolerance_multip": 1.005,
             "min_epochs_before_changing_lrate": 2,
-            "dropout": 0.2,
             "chop_val": 72,
+            "min_samples": 72,
             # "sample_ids": [],
             "sample_ids": ["H344"],
         })
