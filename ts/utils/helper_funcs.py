@@ -264,12 +264,19 @@ def plot_stacks(run_id, path, model):
 def plot_block_ts(ax, block):
     backcasts = (block.backcasts[-1]).squeeze().cpu().detach().numpy()
     y_backcast_values = []
-    for i in range(backcasts.shape[0]):
-        y_backcast_values.extend(backcasts[i, :].tolist())
+    if backcasts.ndim > 1:
+        for i in range(backcasts.shape[0]):
+            y_backcast_values.extend(backcasts[i, :].tolist())
+    else:
+          y_backcast_values.extend(backcasts.tolist())
     y_forecast_values = []
     forecasts = (block.forecasts[-1]).squeeze().cpu().detach().numpy()
-    for i in range(forecasts.shape[0]):
-        y_forecast_values.extend(forecasts[i, :].tolist())
+    if forecasts.ndim > 1:
+        for i in range(forecasts.shape[0]):
+            y_forecast_values.extend(forecasts[i, :].tolist())
+    else:
+        for i in range(forecasts.shape[0]):
+            y_forecast_values.extend(forecasts.tolist())
 
     backcast_color = "b-" if block.block_type == BLOCK_TYPE.GENERAL or block.block_type == BLOCK_TYPE.TREND else "r-"
     x_values = np.arange(len(y_backcast_values))
