@@ -103,6 +103,7 @@ def get_config(interval):
             "min_epochs_before_changing_lrate": 2,
             "dropout": 0.2,
             "chop_val": 72,
+            "min_samples": 72,
             # "sample_ids": [],
             "sample_ids": ["W246"],
         })
