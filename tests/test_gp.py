@@ -32,6 +32,7 @@ class ExactGPModel(gpytorch.models.ExactGP):
 likelihood = gpytorch.likelihoods.GaussianLikelihood(batch_size=4)
 
 print(train_x.shape, train_y.shape)
+print(train_x)
 model = ExactGPModel(train_x, train_y, likelihood)
 
 # Find optimal model hyperparameters
@@ -51,7 +52,7 @@ for i in range(training_iter):
     # Zero gradients from previous iteration
     optimizer.zero_grad()
     # Output from model
-    print(train_x.shape, train_y.shape)
+    #print(train_x.shape, train_y.shape)
     output = model(train_x)
     # Calc loss and backprop gradients
     loss = -mll(output, train_y).sum()

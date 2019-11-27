@@ -277,30 +277,6 @@ def plot_block_ts(ax, block):
     forecast_color = "b--" if block.block_type == BLOCK_TYPE.GENERAL or block.block_type == BLOCK_TYPE.TREND else "r--"
     x_values = np.arange(len(y_forecast_values))
     ax.plot(x_values, y_forecast_values, forecast_color)
-
-    # ts_range = backcasts.shape[1]
-    # num_segments = len(backcasts)
-    # start = 0
-    # stop = ts_range
-    # x_values = []
-    # y_backcast_values = []
-    # y_forecast_values = []
-    # num_segments = min(10, num_segments)
-    # for i in range(num_segments):
-    #     x = np.arange(start, stop)
-    #     x_values.extend(x.tolist())
-    #     y = backcasts[i, :]
-    #     y_backcast_values.extend(y.tolist())
-    #     y_forecast_values.extend(forecasts[i, :].tolist())
-    #     start += ts_range
-    #     stop += ts_range
-    # backcast_color = "b-" if block.block_type == BLOCK_TYPE.GENERAL or block.block_type == BLOCK_TYPE.TREND else "r-"
-    # forecast_color = "b--" if block.block_type == BLOCK_TYPE.GENERAL or block.block_type == BLOCK_TYPE.TREND else "r--"
-    # x_values = np.array(x_values)
-    # y_backcast_values = np.array(y_backcast_values[:-ts_range])
-    # y_forecast_values = np.array(y_forecast_values[ts_range:])
-    # ax.plot(x_values[:-ts_range], y_backcast_values, backcast_color, x_values[ts_range:], y_forecast_values,
-    #         forecast_color)
     ax.set_autoscalex_on(True)
     ax.set_autoscaley_on(True)
 

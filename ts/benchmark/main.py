@@ -1,17 +1,14 @@
 import time
 from pathlib import Path
 
-import gpytorch
 import pandas as pd
-import torch
 from torch.utils.data import DataLoader
 
 from ts.benchmark.config import get_config
-from ts.benchmark.model import SpectralMixtureGPModel
 from ts.benchmark.trainer import Trainer
 from ts.utils.data_loading import SeriesDataset
 from ts.utils.helper_funcs import MODEL_TYPE, set_seed, create_datasets, generate_timeseries_length_stats, \
-    filter_timeseries, determine_chop_value
+    filter_timeseries
 from ts.utils.loss_modules import PinballLoss
 
 
@@ -26,7 +23,7 @@ def main():
     FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.BENCHMARK.value)
 
     print("Loading config")
-    config = get_config("Daily")
+    config = get_config("Quarterly")
     print("Frequency:{}".format(config["variable"]))
     forecast_length = config["output_size"]
     backcast_length = 1 * forecast_length
@@ -43,10 +40,12 @@ def main():
                                                             sample_ids=sample_ids, sample=sample,
                                                             sampling_size=4)
     generate_timeseries_length_stats(train)
-    print("#.Train before chopping:{}".format(train.shape[0]))
     train_before_chopping_count = train.shape[0]
-    chop_val = determine_chop_value(train, backcast_length, forecast_length)
+    print("#.Train before chopping:{}".format(train.shape[0]))
+    chop_val = config["chop_val"]
     print("Chop value:{:6.3f}".format(chop_val))
+    train, val, test, data_infocat_ohe, data_infocat_headers, data_info_cat = \
+        filter_timeseries(info, config["variable"], sample, ts_labels, train, chop_val, val, test)
     train, val, test, data_infocat_ohe, data_infocat_headers, data_info_cat = \
         filter_timeseries(info, config["variable"], sample, ts_labels, train, chop_val, val, test)
     print("#.Train after chopping:{}, lost:{:5.2f}%".format(len(train),
@@ -70,15 +69,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # Training data is 11 points in [0,1] inclusive regularly spaced
-    # train_x = torch.linspace(0, 1, 100).view(1, -1, 1).repeat(4, 1, 1)
-    # # True function is sin(2*pi*x) with Gaussian noise
-    # import math
-    # sin_y = torch.sin(train_x[0] * (2 * math.pi)) + 0.5 * torch.rand(1, 100, 1)
-    # sin_y_short = torch.sin(train_x[0] * (math.pi)) + 0.5 * torch.rand(1, 100, 1)
-    # cos_y = torch.cos(train_x[0] * (2 * math.pi)) + 0.5 * torch.rand(1, 100, 1)
-    # cos_y_short = torch.cos(train_x[0] * (math.pi)) + 0.5 * torch.rand(1, 100, 1)
-    # train_y = torch.cat((sin_y, sin_y_short, cos_y, cos_y_short)).squeeze(-1)
-    #
-    # print(train_x.shape, train_y.shape)
     main()

@@ -138,6 +138,7 @@ class BaseTrainer(nn.Module):
             start = time.time()
             print("Train_batch: %d" % (batch_num + 1))
             loss = self.train_batch(train, val, test, info_cat, idx)
+            print("Train batch:{:d}, loss:{:8.4f}".format(batch_num + 1, loss))
             epoch_loss += loss
             end = time.time()
             self.log.log_scalar("Iteration time", end - start, batch_num + 1 * (self.epochs + 1))

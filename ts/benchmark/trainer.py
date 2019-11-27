@@ -1,15 +1,17 @@
 import copy
+import time
 
+import matplotlib.pyplot as plt
+
+import gpytorch
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
+from gpytorch import mlls
 
 from ts.abstract_trainer import BaseTrainer
-from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
-from gpytorch import mlls
-import gpytorch
 from ts.benchmark.model import SpectralMixtureGPModel
+from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
 
 
 class Trainer(BaseTrainer):
@@ -20,101 +22,73 @@ class Trainer(BaseTrainer):
         self.forecast_length = forecast_length
         self.backcast_length = backcast_length
 
-    def train_batch(self, train, val, test, info_cat, idx):
+    def train_epochs(self):
+        start_time = time.time()
+        ts_label = "Q66"
+        (train, val, test, info_cat, ts_labels, idx) = next(iter(self.data_loader))
 
-        # self.model.covar_module.initialize_from_data(train, val)
-        train = train.double()
-        x_train = np.array(range(train.shape[1])).astype(dtype=np.float)
-        x_train = x_train[:, np.newaxis]
-        x_train = x_train[np.newaxis, :]
-        x_train = np.repeat(x_train, train.shape[0], axis=0)
-        x_train = torch.from_numpy(x_train).double()
-        # val = val.view(1,-1,1)
-        likelihood = gpytorch.likelihoods.GaussianLikelihood(batch_size=x_train.shape[0])
-        self.model = SpectralMixtureGPModel(x_train, train, likelihood, num_outputs=x_train.shape[0])
-        self.model.train()
-        self.model.likelihood.train()
-        self.mll = mlls.ExactMarginalLogLikelihood(self.model.likelihood, self.model)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config["learning_rate"])
-        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
-                                                         step_size=self.config["lr_anneal_step"],
-                                                         gamma=self.config["lr_anneal_rate"])
+        data_y = np.squeeze(torch.cat((train, val), dim=1))
+        N_samples = min(50, data_y.shape[0])
+        sample_indices = np.random.choice(data_y.shape[0], N_samples, replace=False)
+        data_x = np.arange(data_y.shape[0], dtype=float)
+        train_x = torch.from_numpy(data_x[sample_indices]).float()
+        train_y = data_y[sample_indices]
 
-        self.optimizer.zero_grad()
-        print(x_train.shape, train.shape)
-        self.model.double()
-        forecast = self.model(x_train)
-        loss = -self.mll(forecast, train)
-        loss.mean().backward()
-        self.optimizer.step()
-        return float(loss.mean())
+        likelihood = gpytorch.likelihoods.GaussianLikelihood()
+        model = SpectralMixtureGPModel(train_x, train_y, likelihood)
+        model.train()
+        likelihood.train()
+        mll = mlls.ExactMarginalLogLikelihood(model.likelihood, model)
+        optimizer = torch.optim.Adam(model.parameters(), lr=self.config["learning_rate"])
 
-    def val(self, file_path, testing=False):
-        self.model.eval()
-        self.likelihood.eval()
-        with torch.no_grad():
-            acts = []
-            preds = []
-            total_acts = []
-            info_cats = []
-            hold_out_loss = 0
-            for batch_num, (train, val, test, info_cat, _, idx) in enumerate(self.data_loader):
-                target = test if testing else val
-                if testing:
-                    train = torch.cat((train, val), dim=1)
-                ts_len = train.shape[1]
-                input = train[:, ts_len - self.backcast_length:ts_len][np.newaxis, ...]
-                backcast, forecast = self.model(input)
-                hold_out_loss += self.criterion(forecast, target[np.newaxis, ...])
-                acts.extend(target.view(-1).cpu().detach().numpy())
-                preds.extend(forecast.view(-1).cpu().detach().numpy())
-                total_act = torch.cat((train, forecast.view(forecast.shape[1], -1)), dim=1)
-                total_acts.extend(total_act.view(-1).cpu().detach().numpy())
-                info_cats.append(info_cat.cpu().detach().numpy())
+        training_iter = 100
+        for i in range(training_iter):
+            optimizer.zero_grad()
+            forecast = model(train_x)
+            loss = - mll(forecast, train_y)
+            loss.backward()
+            optimizer.step()
+            print('Iter %d/%d - Loss: %.3f   noise: %.3f' % (
+                i + 1, training_iter, loss.item(),
+                model.likelihood.noise.item()
+            ))
 
-            hold_out_loss = hold_out_loss / (batch_num + 1)
+        test_data_y = np.squeeze(torch.cat((train, val, test), axis=1))
+        test_data_x = np.arange(test_data_y.shape[0], dtype=float)
+        test_x = torch.from_numpy(test_data_x).float()
 
-            info_cat_overall = np.concatenate(info_cats, axis=0)
-            _hold_out_df = pd.DataFrame({"acts": acts, "preds": preds})
-            cats = [val for val in self.ohe_headers[info_cat_overall.argmax(axis=1)] for _ in
-                    range(self.config["output_size"])]
-            _hold_out_df["category"] = cats
+        # Get into evaluation (predictive posterior) mode
+        model.eval()
+        likelihood.eval()
 
-            overall_hold_out_df = copy.copy(_hold_out_df)
-            overall_hold_out_df["category"] = ["Overall" for _ in cats]
+        # The gpytorch.settings.fast_pred_var flag activates LOVE (for fast variances)
+        with torch.no_grad(), gpytorch.settings.fast_pred_var():
+            # Make predictions
+            observed_pred = likelihood(model(test_x))
 
-            overall_hold_out_df = pd.concat((_hold_out_df, overall_hold_out_df), sort=False)
+            # Initialize plot
+            f, ax = plt.subplots(figsize=(17, 4))
 
-            mase = np_mase(total_acts, self.config["output_size"])
-            grouped_results = overall_hold_out_df.groupby(["category"]).apply(
-                lambda x: np_MASE(x.preds, x.acts, mase, x.shape[0]))
-            results = grouped_results.to_dict()
-            print("============== MASE ==============")
-            print(results)
-
-            grouped_results = overall_hold_out_df.groupby(["category"]).apply(
-                lambda x: np_sMAPE(x.preds, x.acts, x.shape[0]))
-            results = grouped_results.to_dict()
-
-            print("============== sMAPE ==============")
-            print(results)
-
-            hold_out_loss = float(hold_out_loss.detach().cpu())
-            print("============== HOLD-OUT-LOSS ==============")
-            print("hold_out_loss:{:5.2f}".format(hold_out_loss))
-
-            results["hold_out_loss"] = hold_out_loss
-            self.log_values(results)
-
-            grouped_path = file_path / ("grouped_results-{}.csv".format(self.epochs))
-            grouped_results.to_csv(grouped_path, header=True)
-
-        return hold_out_loss
+            # Get upper and lower confidence bounds
+            lower, upper = observed_pred.confidence_region()
+            # Plot training data
+            ax.plot(test_data_x, test_data_y, "r")
+            ax.plot(data_x, data_y, "k")
+            ax.plot(train_x.numpy(), train_y.numpy(), "k*")
+            # Plot predictive means as blue line
+            ax.plot(test_x.numpy(), observed_pred.mean.numpy(), "b")
+            # Shade between the lower and upper confidence bounds
+            ax.fill_between(test_x.numpy(), lower.numpy(), upper.numpy(), alpha=0.5)
+            ax.legend(["Forecast", "Truth", "Samples", "Mean", "Confidence"])
+            ax.set_xlabel("Time")
+            ax.set_ylabel("Observations")
+            ax.set_title("Time Series:" + ts_label)
+            plt.show()
 
 
 if __name__ == "__main__":
-    x = np.array(range(10))
-    x = x[:, np.newaxis]
-    x = x[np.newaxis, :]
-    x = np.repeat(x, 4, axis=0)
+    x = np.arange(10)
+    # x = x[:, np.newaxis]
+    # x = x[np.newaxis, :]
+    # x = np.repeat(x, 4, axis=0)
     print(x)
