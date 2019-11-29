@@ -1,6 +1,8 @@
 import cmath
 import random
+import sys
 from enum import Enum
+from functools import reduce
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -453,3 +455,55 @@ def isclose(a,
     else:
         raise ValueError('method must be one of:'
                          ' "asymmetric", "strong", "weak", "average"')
+
+
+def summary_as_repr(model, file=sys.stderr):
+    def _addindent(s_, numSpaces):
+        s = s_.split('\n')
+        # don't do anything for single-line stuff
+        if len(s) == 1:
+            return s_
+        first = s.pop(0)
+        s = [(numSpaces * ' ') + line for line in s]
+        s = '\n'.join(s)
+        s = first + '\n' + s
+        return s
+
+    def repr(model):
+        # We treat the extra repr like the sub-module, one item per line
+        extra_lines = []
+        extra_repr = model.extra_repr()
+        # empty string will be split into list ['']
+        if extra_repr:
+            extra_lines = extra_repr.split('\n')
+        child_lines = []
+        total_params = 0
+        for key, module in model._modules.items():
+            mod_str, num_params = repr(module)
+            mod_str = _addindent(mod_str, 2)
+            child_lines.append('(' + key + '): ' + mod_str)
+            total_params += num_params
+        lines = extra_lines + child_lines
+
+        for name, p in model._parameters.items():
+            total_params += reduce(lambda x, y: x * y, p.shape)
+
+        main_str = model._get_name() + '('
+        if lines:
+            # simple one-liner info, which most builtin Modules will use
+            if len(extra_lines) == 1 and not child_lines:
+                main_str += extra_lines[0]
+            else:
+                main_str += '\n  ' + '\n  '.join(lines) + '\n'
+
+        main_str += ')'
+        if file is sys.stderr:
+            main_str += ', \033[92m{:,}\033[0m params'.format(total_params)
+        else:
+            main_str += ', {:,} params'.format(total_params)
+        return main_str, total_params
+
+    string, count = repr(model)
+    if file is not None:
+        print(string, file=file)
+    return count

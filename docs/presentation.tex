@@ -1,0 +1,235 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{caption}
+\usepackage{times}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[psamsfonts]{amssymb}
+\usepackage{latexsym}
+\usepackage{color}
+\usepackage{graphics}
+\usepackage{enumerate}
+\usepackage[shortlabels]{enumitem}
+\usepackage{amstext}
+\usepackage{blkarray}
+\usepackage{url}
+\usepackage{epsfig}
+\usepackage{bm}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+}
+\usepackage{mathtools}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage{xcolor}
+\usepackage{lmodern}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{etoolbox}
+
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\renewrobustcmd{\bfseries}{\fontseries{b}\selectfont}
+\renewrobustcmd{\boldmath}{}
+\newrobustcmd{\B}{\bfseries}
+
+\title{Univariate Time Series Forecasting Using  M4 Competition Deep Learning Architectures}
+\date{}
+
+\begin{document}
+
+%\noindent\rule{\textwidth}{0.4pt}
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+\begin{itemize}
+	\item Given an history $[ y_1, \cdots, y_T ]$
+	\item TASK: predict $[y_{T+1}, \cdots , y_{T+H} ]$
+	\item H: horizon, T: length of observations, m: periodicity of the data
+	\item Standard scale-free metrics in the practice of forecasting:
+	\begin{itemize}
+			\item [--]  sMAPE: symmetric Mean Absolute Percentage Error
+			\item [--]  MASE: Mean Absolute Scaled Error
+	\end{itemize}
+\end{itemize}
+
+\[
+	\text{sMAPE} = \frac{2}{H}  \sum_{i=1}^{H} \frac{ | y_{T+i}  - \hat{y}_{T+i} | } { | y_{T+i} | + | \hat{y}_{T+i} | } \text{ ,     } 
+	\text{MASE} = \frac{1}{H}  \sum_{i=1}^{H} \frac{ | y_{T+i}  - \hat{y}_{T+i} | } { \frac{1} {T + H - m} \sum_{j=m+1}^{T+H}  | y_j  - y_{j-m} | }
+\]
+
+\par\noindent\rule{\textwidth}{0.4pt}\\[12pt]
+
+\begin{table}[!ht]
+	\centering
+    %\scalebox{0.7}{
+	\begin{tabular}{llllllll} \toprule
+		\textbf{Frequency} & \textbf{Demographic} & \textbf{Finance} & \textbf{Industry} & \textbf{Macro} & \textbf{Micro} & \textbf{Other} & \textbf{Total}  \\ \midrule
+		Yearly & 1,088 & 6,519 & 3,716 & 3,903 & 6,538 & 1,236 & 23,000 \\
+		\midrule
+		Quarterly & 1,858 & 5,305 & 4,637 & 5,315 & 6,020 & 865 & 24,000 \\
+		\midrule
+		Monthly & 5,728 & 10,987 & 10,017 & 10,016 & 10,975 & 277 & 48,000 \\
+		\midrule		
+		Weekly & 24 & 164 & 6 & 41 & 112 & 12 & 359 \\
+		\midrule		
+		Daily & 10 & 1,559 & 422 & 127 & 1,476 & 633 & 4,227 \\
+		\midrule		
+		Hourly & 0 & 0 & 0 & 0 & 0 & 414 & 414 \\
+		\midrule		
+		Total & 8,708 & 24,534 & 18,798 & 19,402 & 25,1212 & 3,437 & 100,000 \\
+		 \bottomrule
+	\end{tabular}
+    %}
+	%\caption{M4 data by type and series frequency}
+	%\label{Tab:2}
+\end{table}
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{ll} \toprule
+		\textbf{Time Series} & \textbf{Dilations} \\ 
+		\midrule
+		Quarterly  & (1, 2), (4, 8)	\\
+		\midrule
+		Monthly 	& (1, 3), (6, 12)	\\
+		\midrule
+		Daily 	& (1, 7), (14, 28)	\\
+		\midrule		
+		Yearly 	& (1, 2), (2, 6) 	\\
+		\midrule		
+		Weekly 	& (1, 14), (14, 28)	\\
+		\midrule		
+		Hourly 	& (1, 24), (24, 48)	\\
+		\bottomrule
+	\end{tabular}
+	\caption*{ES-RNN dilation parameters}
+\end{table}
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+\begin{align*}
+	l_t 	&= \alpha \frac{y_t} {s_{t-m}} + (1-\alpha) l_{t-1} \\
+	s_t 	&= \beta \frac{y_t}{l_{t-1}} + (1-\beta) s_{t-m}
+\end{align*}
+
+\begin{align*}
+	\hat{y}_{\textbf{win}}		&= \textbf{ES-RNN}(\frac{y_{ti}}{s_{ti} l_{ti}}) \\
+	y_{\textbf{truth}}		&= (\frac{y_{to}}{s_{to} l_{to}}) 
+\end{align*}
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+\begin{align*}
+	\hat{\textbf{y}}_{i,j}	&= 	\textbf{W}_{i,j} \theta_{i,j}	+ \textbf{b}_{i,j} \\
+		g_\theta (t)	&= 	\sum_{i=0}^p \theta_i t^i \\
+					&	\text{ where } \textbf{t} = [0,1,2, \cdots, H-2, H-1]^T / H. \\
+		g_\theta (t)	&= \sum_{i=0}^{\floor*{H/2-1}} \theta_i \cos{(2 \pi it)} + \theta_{i + \floor*{H/2}}  \sin{(2 \pi it)} \\
+					&	\text{ where } \theta_{i,j} \text{ are Fourier coefficients predicted by a FC network of layer} j \text{ of stack } i
+\end{align*}
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+\begin{table}[!ht]
+	\centering
+
+	\begin{tabular}{lllllll} 
+		\toprule
+		& \multicolumn{6}{c} {\textbf{sMAPE by Frequency}} \\
+		\textbf{Model} & \textbf{H344} & \textbf{D1} & \textbf{W246} & \textbf{M1} & \textbf{Q66} & \textbf{Y1}  \\
+		\midrule
+		GP  & 94.93	&  22.37 & 32.7	 & 19.04 & 35.02 & 20 \\
+		\midrule
+		ES-RNN 	& 36.68 	& 6.48  & 23.44 & 10.19 & 10.2 & 1.99 \\
+		\midrule
+		N-BEATS 	& 130.38 	& 6.54 & 46.17 & 24.68	& 3.26 & 9.53 \\
+		 \bottomrule
+	\end{tabular}
+	\caption*{Comparison of results on specific Time Series}
+\end{table}
+
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{llllllll} 
+	\toprule
+		& \multicolumn{6}{c} {\textbf{sMAPE by Frequency}} \\
+		\textbf{Model} & \textbf{Hourly} & \textbf{Daily} & \textbf{Weekly} & \textbf{Monthly} & \textbf{Quarterly}   & \textbf{Yearly} \\
+		\midrule
+		ES-RNN 	& 30.26 	& \B 2.97  & 14.84 & \B 9.78 &  10.51 & 14.58 \\
+		\midrule
+		N-BEATS 	&  - & 4.08 & 27.93 & 85.55	& 11.94 & 70.54 \\
+		\bottomrule
+	\end{tabular}
+	\caption*{Performance on the M4 test set}
+\end{table}
+
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{cccc}
+	 \toprule
+		\textbf{Data Category} & \textbf{Yearly} & \textbf{Quarterly} & \textbf{Monthly} \\
+		Demographic &  \B 11.45 & 11.67 & \B 5.76 \\
+		\midrule
+		Finance & \B 16.31 & \B 10.41 & \B 10.8 \\
+		\midrule
+		Industry & 21.98 & 8.74 & \B 11.3 \\
+		\midrule
+		Macro & \B 14.21 & 10.13& \B 11.7 \\
+		\midrule
+		Micro & \B 10.93 & 11.96 & \B 8.02 \\
+		\midrule
+		Other & 16.27 & 7.87 & \B 7.76 \\
+		\midrule
+		Overall & 14.58 & 10.51 & \B 9.78 \\		
+		\bottomrule
+	\end{tabular}
+	\caption*{ES-RNN: breakdown of sMAPE by time period and category}
+\end{table}
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{cccc}
+	 \toprule
+		\textbf{Data Category} & \textbf{Yearly} & \textbf{Quarterly} & \textbf{Monthly} \\
+		Demographic &  57.62 & 11.74 & 86.67 \\
+		\midrule
+		Finance & 77.52 & 13.90 & 87.68 \\
+		\midrule
+		Industry & 71.86 & 10.85 & 89.2 \\
+		\midrule
+		Macro & 71.86 & 11.35 & 84.48 \\
+		\midrule
+		Micro & 65.01 & 12.22 & 80.2 \\
+		\midrule
+		Other & 71.83 & 7.90 & 96.5 \\
+		\midrule
+		Overall & 70.54 & 11.94 & 85.55 \\		
+		\bottomrule
+	\end{tabular}
+	\caption*{N-BEATS: breakdown of sMAPE by time period and category}
+\end{table}
+
+
+\par\noindent\rule{\textwidth}{0.4pt}
+
+\end{document}

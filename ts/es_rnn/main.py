@@ -30,7 +30,7 @@ LOG_DIR = Path("logs/" + MODEL_TYPE.ESRNN.value)
 FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.ESRNN.value)
 
 print("loading config")
-config = get_config("Hourly")
+config = get_config("Monthly")
 print("Frequency:{}".format(config["variable"]))
 
 print("loading data")
@@ -64,6 +64,7 @@ dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
 
 reload = config["reload"]
 model = ESRNN(num_series=len(dataset), config=config)
+
 optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
 add_run_id = config["add_run_id"]
 # criterion = PinballLoss(config["training_tau"], config["output_size"] * config["batch_size"], config["device"])
@@ -72,4 +73,5 @@ tr = ESRNNTrainer(MODEL_TYPE.ESRNN.value, model, optimizer, criterion, dataloade
                   ohe_headers=dataset.data_info_cat_headers,
                   csv_path=LOG_DIR,
                   figure_path=FIGURE_PATH, sampling=sample, reload=reload)
+
 tr.train_epochs()

@@ -22,7 +22,7 @@ def main():
     FIGURE_PATH = Path("figures-temp/" + MODEL_TYPE.BENCHMARK.value)
 
     print("Loading config")
-    config = get_config("Hourly")
+    config = get_config("Monthly")
     print("Frequency:{}".format(config["variable"]))
 
     print("loading data")

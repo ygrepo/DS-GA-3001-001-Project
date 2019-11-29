@@ -2,7 +2,6 @@ from math import sqrt
 
 import torch
 
-from ts.n_beats.model import BLOCK_TYPE
 from ts.utils.helper_funcs import SAVE_LOAD_TYPE
 
 
@@ -36,9 +35,10 @@ def get_config(interval):
             "lr_anneal_step": 5,
             "chop_val": 72,
             "min_samples": 70,
-            #"sample_ids": [],
+            # "sample_ids": [],
             "sample_ids": ["Q66"],
         })
+    elif interval == "Monthly":
         config.update({
             "variable": "Monthly",
             "seasonality": 12,
@@ -86,7 +86,7 @@ def get_config(interval):
             "min_epochs_before_changing_lrate": 2,
             "chop_val": 25,
             "min_samples": 20,
-            #"sample_ids": [],
+            # "sample_ids": [],
             "sample_ids": ["Y1"],
         })
     elif interval == "Weekly":

@@ -98,14 +98,6 @@ class ESRNN(nn.Module):
         # Time-series normalization and deseasonalization
         # For each time step t:
         #   Extract an input rolling window based on [input_window_start, input_window_end]
-        #   input_window_start = t- self.config["input_size"], input_window_end: t
-        #   deseasonalized: ydeseas_t = y_[input_window_start:input_window_end]/s_[input_window_start:input_window_end]
-        #   Normalized: ynorm_t = ydeseas_t / l_t
-        #   Add feature: add categories (OH) yfinal_t = ynorm_t + category
-        #   create input_window_t
-        #   if t < total_time_steps - horizon:
-        #       output_window_start = t, output_window_end = t + horizon
-        #   deseasonalized and normalized on output window[output_window_start:output_window_end]
         for i in range(self.config["input_size"] - 1, train.shape[1]):
             input_window_start = i + 1 - self.config["input_size"]
             input_window_end = i + 1

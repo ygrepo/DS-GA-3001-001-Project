@@ -75,14 +75,14 @@ class Trainer:
             # Get upper and lower confidence bounds
             lower, upper = observed_pred.confidence_region()
             # Plot training data
-            ax.plot(test_data_x, test_data_y, "r")
-            ax.plot(data_x, data_y, "k")
+            ax.plot(test_data_x, test_data_y, "b")
+            #ax.plot(data_x, data_y, "k")
             ax.plot(train_x.numpy(), train_y.numpy(), "k*")
             # Plot predictive means as blue line
-            ax.plot(test_x.numpy(), observed_pred.mean.numpy(), "b")
+            ax.plot(test_x.numpy(), observed_pred.mean.numpy(), "r")
             # Shade between the lower and upper confidence bounds
             ax.fill_between(test_x.numpy(), lower.numpy(), upper.numpy(), alpha=0.5)
-            ax.legend(["Forecast", "Truth", "Samples", "Mean", "Confidence"])
+            ax.legend(["Truth", "Samples", "Mean", "Confidence"])
             ax.set_xlabel("Time")
             ax.set_ylabel("Observations")
             mape = sMAPE(observed_pred.mean[-self.config["output_size"]:],
