@@ -76,7 +76,7 @@ class BaseTrainer(nn.Module):
                     f.write("epoch,training_loss,validation_loss\n")
             if epoch_loss != 0 and e == self.max_epochs - 1 \
                     and self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled():
-                plot_stacks(self.run_id, self.figure_path, self.model)
+                plot_stacks(self.figure_path, self.model)
 
             epoch_val_loss = self.val(file_path, testing=True, debugging=False, figure_path=self.figure_path)
             with open(file_path_validation_loss, "a") as f:
@@ -105,7 +105,7 @@ class BaseTrainer(nn.Module):
                     print("Validation loss not decreasing for last {} times".format(loss_repeat_counter))
                     if self.model_name == MODEL_TYPE.NBEATS.value and self.plot_ts_enabled() \
                             and self.config["sample_ids"]:
-                        plot_stacks(self.run_id, self.figure_path, self.model)
+                        plot_stacks(self.figure_path, self.model)
 
                     if self.model_name == MODEL_TYPE.ESRNN.value and self.plot_ts_enabled() \
                             and self.config["sample_ids"]:

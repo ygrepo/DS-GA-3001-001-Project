@@ -235,7 +235,7 @@ def shuffled_arrays(a, b):
     return a[p], b[p], p
 
 
-def plot_stacks(run_id, path, model):
+def plot_stacks(path, model):
     path.mkdir(parents=True, exist_ok=True)
     num_stacks = len(model.stacks)
     num_blocks = len(model.stacks[0])
