@@ -12,7 +12,7 @@
 %     \usepackage[preprint]{neurips_2019}
 
 % to compile a camera-ready version, add the [final] option, e.g.:
-     \usepackage[final]{neurips_2019}
+\usepackage[final]{neurips_2019}
 
 % to avoid loading the natbib package, add option nonatbib:
 %     \usepackage[nonatbib]{neurips_2019}
@@ -25,6 +25,10 @@
 \usepackage{amsfonts}       % blackboard math symbols
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
 
 \title{Univariate Time Series Forecasting using ES-RNN and N-BEATS}
 
@@ -56,37 +60,105 @@
 \begin{abstract}
   In this work, we seek to replicate and improve the results reached by two neural networks: \textbf{ES-RNN} and \textbf{N-BEATS} on the M4 dataset competition.
   We also run different experimentations to compare the performances of these two deep learning techniques to a more classical statistical approach like Gaussian Process ($\mathcal{GP}$).
-  We demonstrate that although Gaussian processes could be powerful for sampling tasks and simpler to configure, these neural networks outperform it for forecasting. Neural networks could have an overhead in term of the number of hyper-parameters to tune, but when using batching they scale up very easily and generalize well to a large number of time series (100K for M4). We are thus, pretty confident that, the two neural networks could handle with the appropriate setting of hyper-parameters, other univariate time series beyond the M4 dataset. 
+  We demonstrate that although Gaussian processes could be powerful for sampling tasks and simpler to configure, these neural networks outperform it for forecasting. Neural networks could have an overhead in term of the number of hyper-parameters to tune, but when using batching they scale up very easily and generalize well to a large number of time series (100K for M4). We are thus, pretty confident that, the two neural networks could handle with the appropriate setting of hyper-parameters, other univariate time series beyond the M4 dataset.  
   
  \end{abstract}
 
 \section{Introduction}
 
-\paragraph{Summary} The dataset is provided by the M4 competition organized by the International Institute of Forecasters. These competitions also know as the "Madrakis competitions", have been happening since 1982, roughly every 10 years with an increasing number of time series to forecast starting from 1001in 1982  to 100,000 in 2018, the M4 competition. They attract people from academia as well practitioners, the last winner being Slawek Smyl, from Uber Technologies. The model used by Smyl is a hybrid approach combining Holts-Winter smoothing techniques with a recurrent neural network (RNN). Boris Oreshkin et Al. want to challenge the conclusion that, mixed techniques are the future by proposing a pure DL model with interpretable outputs: \textbf{N-Beats}, which they claim outperforms \textbf{ES-RNN}, Smyl's model. N-Beats could be a very deep DL model and it is important for their authors that, in addition to hight accuracy, N-Beats has interpretable outputs which can match established statistical models such as ETS and ARIMA, which are robust, efficient, and automatic.
+\paragraph{Summary} The dataset is provided by the M4 competition organized by the International Institute of Forecasters. These competitions also know as the "Madrakis competitions", have been happening since 1982, roughly every 10 years with an increasing number of time series to forecast starting from 1001in 1982  to 100,000 in 2018, the M4 competition. They attract people from academia as well practitioners, the last winner being Slawek Smyl, from Uber Technologies. The model used by Smyl is a hybrid approach combining Holts-Winter smoothing techniques with a recurrent neural network (RNN). Boris Oreshkin et Al. want to challenge the conclusion that, mixed techniques are the future by proposing a pure DL model with interpretable outputs: \textbf{N-Beats}, which they claim outperforms \textbf{ES-RNN}, Smyl's model. N-Beats could be a very deep DL model and it is important for their authors that, in addition to hight accuracy, N-Beats has interpretable outputs which can match established statistical models such as ETS and ARIMA, which are robust, efficient, and automatic. 
+
+\section{ES-RNN}
+\label{ESRNN}
+
+\subsection{Model Description}
+
+ES-RNN algorithm consists in two major layers: a preprocessing layer which uses Holt-Winter smoothing technic to extract trend and seasonality parameters and a dilated RNN network.
+The Holt-Winter parameters are part of the back-propagation and are tuned as the network learns the characteristics of the time series. The ES-RNN model uses a modified version of the Holt-Winters formula,
+in which there is no local linear level coefficient, and level and seasonality terms are scaled instead of subtracted. 
+The linear forecast is replaced by an RNN, which has for input the normalized and de-seasonalized prior observations. 
 
 
-%\subsection{Style}
+\begin{align*}
+	l_t 	&= \alpha \frac{y_t} {s_{t-m}} + (1-\alpha) l_{t-1} \\
+	s_t 	&= \beta \frac{y_t}{l_{t-1}} + (1-\beta) s_{t-m} \\
+	\hat{y}_{\textbf{win}}		&= \textbf{ES-RNN}(\frac{y_{ti}}{s_{ti} l_{ti}}) \\
+	y_{\textbf{truth}}		&= (\frac{y_{to}}{s_{to} l_{to}}) 
+\end{align*}
+where $l$ is a state variable, $s$ is a seasonality coefficient, $\alpha$ and $\beta$ are network parameters, $m$ is the periodicity of the data.
+
+To model long-term dependencies in time series, ES-RNN uses dilated RNNs which allow to stack RNN cells by having skip connections between RNN cells . 
+The dilation parameters  are given in table \autoref{tab:dilations}  DRNN cells can be vanilla RNN, LSTM, GRU,  GRU cells provided the higher accuracy.
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{ll} \toprule
+		\textbf{Time Series} & \textbf{Dilations} \\ 
+		\midrule
+		Quarterly  & (1, 2), (4, 8)	\\
+		\midrule
+		Monthly 	& (1, 3), (6, 12)	\\
+		\midrule
+		Daily 	& (1, 7), (14, 28)	\\
+		\midrule		
+		Yearly 	& (1, 2), (2, 6) 	\\
+		\midrule		
+		Weekly 	& (1, 14), (14, 28)	\\
+		\midrule		
+		Hourly 	& (1, 24), (24, 48)	\\
+		%\bottomrule
+	\end{tabular}
+	\label{tab:dilations}
+	\caption{ES-RNN dilation parameters}
+\end{table}
 
 
-\paragraph{Preprint option}
-If you wish to post a preprint of your work online, e.g., on arXiv, using the
-NeurIPS style, please use the \verb+preprint+ option. This will create a
-nonanonymized version of your work with the text ``Preprint. Work in progress.''
-in the footer. This version may be distributed as you see fit. Please \textbf{do
-  not} use the \verb+final+ option, which should \textbf{only} be used for
-papers accepted to NeurIPS.
+ \subsection{Data Preparation}
+ The M4 time series have different length, to allow vectorization and to take advantage of the GPUs, they are chopped using a predetermined cut off value.
+ To the exception of the daily time series, for which the cut-off value is 200, 72 is used as the default value (\autoref{tab:cutoff}.
+ 
+ \begin{table}[!ht]
+	\centering
+	\begin{tabular}{llllllll} 
+	\toprule
+		& \multicolumn{6}{c} {\textbf{Filtering rates (in \%)}} \\
+			& \textbf{Hourly} & \textbf{Daily} & \textbf{Weekly} & \textbf{Monthly} & \textbf{Quarterly}   & \textbf{Yearly} \\
+		\midrule
+		 	& 6.93 	& 6.93  & 18.11 & 26.83 &  45.42 & 60.61 \\
+		\bottomrule
+	\end{tabular}
+	\label{tab:cutoff}
+	\caption{Percentage of time series eliminated by the cut-off value}
+\end{table}
 
-At submission time, please omit the \verb+final+ and \verb+preprint+
-options. This will anonymize your submission and add line numbers to aid
-review. Please do \emph{not} refer to these line numbers in your paper as they
-will be removed during generation of camera-ready copies.
 
-The file \verb+neurips_2019.tex+ may be used as a ``shell'' for writing your
-paper. All you have to do is replace the author, title, abstract, and text of
-the paper with your own.
-
-The formatting instructions contained in these style files are summarized in
-Sections \ref{gen_inst}, \ref{headings}, and \ref{others} below.
+ The batch size is by default 1024, we noticed that it affects the overall performance of the network, depending the time series frequency,
+ too small the validation loss may jump up and down,  and  in some cases the larger the batch size, the better.
+ 
+ For an hourly frequency, the effect of the batch size is given in table  \autoref{tab:batchsize} .
+ \begin{table}[!ht]
+	\centering
+	\begin{tabular}{llllllll} \toprule
+			& \multicolumn{6}{c} {\textbf{sMAPE per category}} \\
+		\textbf{Batch size} & \textbf{Demographic} & \textbf{Finance} & \textbf{Industry} & \textbf{Macro} & \textbf{Micro} & \textbf{Other} & \textbf{Total}  \\ \midrule
+		512 & 6.32 & 3.34 & 3.95 & 2.52 & 2.43 & 3.08 & 3.02 \\
+		\midrule
+		1024 & 6.20 & 3.27 & 3.9 & 2.52 & 2.37 & 3.07 & 2.97 \\
+		\midrule
+		2048 & 6.26 & 3.32 & 3.92 & 2.49 & 2.42 & 3.1 & 3.01 \\
+		 \bottomrule
+	\end{tabular}
+	\label{tab:batchsize}
+	\caption{ES-RNN batch size statistics}
+\end{table}
+ 
+ Each time series is split into two windows: a backcast and forecast window.  Observations in each window are normalized and de-seasonalized using the coefficients of the exponential smoothing.
+ In addition, a one-hot representation of the time series category is added to the input window.
+ 
+ \begin{center}
+	\includegraphics{H344_levels_seasonalities.pdf} 
+%	\includegraphics[scale=1,bb=0 0 30 30][width=0.5\linewidth]{H344_levels_seasonalities.png} 
+\end{center}
 
 \section{General formatting instructions}
 \label{gen_inst}

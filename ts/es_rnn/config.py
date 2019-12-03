@@ -16,7 +16,7 @@ def get_config(interval):
         "num_of_train_epochs": 100,
         "num_of_train_epochs_sampling": 100,
         "num_of_categories": 6,  # in data provided
-        "batch_size": 1024,
+        "batch_size": 2048,
         "gradient_clipping": 20,
         "c_state_penalty": 0,
         "print_train_batch_every": 5,
