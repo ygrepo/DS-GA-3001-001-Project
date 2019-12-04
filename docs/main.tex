@@ -30,6 +30,10 @@
 \usepackage{graphicx}
 \graphicspath{ {./images/} }
 
+\usepackage{caption}
+\captionsetup[figure]{labelfont=small, justification=centering}
+\newcommand{\p}{\mathrm{P}}
+
 \title{Univariate Time Series Forecasting using ES-RNN and N-BEATS}
 
 % The \author macro works with any number of authors. There are two commands
@@ -66,7 +70,7 @@
 
 \section{Introduction}
 
-\paragraph{Summary} The dataset is provided by the M4 competition organized by the International Institute of Forecasters. These competitions also know as the "Madrakis competitions", have been happening since 1982, roughly every 10 years with an increasing number of time series to forecast starting from 1001in 1982  to 100,000 in 2018, the M4 competition. They attract people from academia as well practitioners, the last winner being Slawek Smyl, from Uber Technologies. The model used by Smyl is a hybrid approach combining Holts-Winter smoothing techniques with a recurrent neural network (RNN). Boris Oreshkin et Al. want to challenge the conclusion that, mixed techniques are the future by proposing a pure DL model with interpretable outputs: \textbf{N-Beats}, which they claim outperforms \textbf{ES-RNN}, Smyl's model. N-Beats could be a very deep DL model and it is important for their authors that, in addition to hight accuracy, N-Beats has interpretable outputs which can match established statistical models such as ETS and ARIMA, which are robust, efficient, and automatic. 
+\paragraph{Summary} The dataset is provided by the M4 competition organized by the International Institute of Forecasters. These competitions also known as the "Madrakis competitions", have been happening since 1982, roughly every 10 years with an increasing number of time series to forecast starting from 1000 in 1982  to 100,000 in 2018, for the M4 competition. They attract people from academia as well practitioners, the last winner is Slawek Smyl, from Uber Technologies. The model used by Smyl is a hybrid approach combining Holts-Winter smoothing techniques with a recurrent neural network (RNN). Boris Oreshkin et Al. want to challenge the conclusion that, mixed techniques are the future by proposing a pure DL model with interpretable outputs: \textbf{N-Beats}, which they claim outperforms \textbf{ES-RNN}, Smyl's model. N-Beats could be a very deep DL model and it is important for their authors that, in addition to hight accuracy, N-Beats has interpretable outputs which can match established statistical models such as ETS and ARIMA, robust, efficient, and automatic models. 
 
 \section{ES-RNN}
 \label{ESRNN}
@@ -88,7 +92,7 @@ The linear forecast is replaced by an RNN, which has for input the normalized an
 where $l$ is a state variable, $s$ is a seasonality coefficient, $\alpha$ and $\beta$ are network parameters, $m$ is the periodicity of the data.
 
 To model long-term dependencies in time series, ES-RNN uses dilated RNNs which allow to stack RNN cells by having skip connections between RNN cells . 
-The dilation parameters  are given in table \autoref{tab:dilations}  DRNN cells can be vanilla RNN, LSTM, GRU,  GRU cells provided the higher accuracy.
+The dilation parameters  are given in table \autoref{tab:dilations}  DRNN cells can be vanilla RNN, LSTM, GRU,  GRU cells provides the higher accuracy.
 
 \begin{table}[!ht]
 	\centering
@@ -155,10 +159,37 @@ The dilation parameters  are given in table \autoref{tab:dilations}  DRNN cells 
  Each time series is split into two windows: a backcast and forecast window.  Observations in each window are normalized and de-seasonalized using the coefficients of the exponential smoothing.
  In addition, a one-hot representation of the time series category is added to the input window.
  
- \begin{center}
-	\includegraphics{H344_levels_seasonalities.pdf} 
-%	\includegraphics[scale=1,bb=0 0 30 30][width=0.5\linewidth]{H344_levels_seasonalities.png} 
-\end{center}
+ \begin{figure}[ht]
+\centering
+	\includegraphics[width=0.9\columnwidth]{H344_levels_seasonalities.png} 
+\caption{Levels are a smoothing version of the original time series and \\ seasonality coefficients are between 0 and 1.}
+\label{fig:levelsseasonality}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+	\includegraphics[width=0.9\columnwidth]{H344_windows.png} 
+\caption{The input and ouput of the RNN are normalized and de-seasonalized, compared to N-BEATS which are not scaled.}
+\label{fig:normalizeddeseasonalized}
+\end{figure}
+Dropout or batch normalization did not provide any significant improvement, the smoothing and normalization of the data seems enough for a convergence to local minimum.
+In both networks, using the pinball loss function brought definitely a boost in performance compared to L2 or L1 losses. The pinball loss function is popular in forecasting. Two different slopes are used depending whether the forecast $\hat{y}_t$ value is greater
+or smaller than the truth value $y_t$. Two models are then trained corresponding to the lower and upper bounds of the desired level of prediction interval:
+\[
+	L_\alpha = 
+	\begin{cases}
+		\alpha (\hat{y}_t  - y_t) & \text{ if } \hat{y}_t \geq y_t \\
+		(1-\alpha) (y_t - \hat{y}_t) & \text{ if }  y_t > \hat{y}_t
+	\end{cases}
+\]
+Then $\p(\hat{y}_{t, lower} \le y_t < \hat{y}_{t, upper}) = 1 - 2 \alpha$.
+\begin{figure}[ht]
+\centering
+	\includegraphics[width=0.4\columnwidth]{pinballloss.png} 
+\caption{$\tau$ controls the desired imbalance in the quantile forecast.}
+\label{fig:pinballloss}
+\end{figure}
+
 
 \section{General formatting instructions}
 \label{gen_inst}
