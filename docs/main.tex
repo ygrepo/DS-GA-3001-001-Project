@@ -64,7 +64,7 @@
 \begin{abstract}
   In this work, we seek to replicate and improve the results reached by two neural networks: \textbf{ES-RNN} and \textbf{N-BEATS} on the M4 dataset competition.
   We also run different experimentations to compare the performances of these two deep learning techniques to a more classical statistical approach like Gaussian Process ($\mathcal{GP}$).
-  We demonstrate that although Gaussian processes could be powerful for sampling tasks and simpler to configure, these neural networks outperform it for forecasting. Neural networks could have an overhead in term of the number of hyper-parameters to tune, but when using batching they scale up very easily and generalize well to a large number of time series (100K for M4). We are thus, pretty confident that, the two neural networks could handle with the appropriate setting of hyper-parameters, other univariate time series beyond the M4 dataset.  
+  We demonstrate that although Gaussian processes could be powerful for sampling tasks and simpler to configure, these neural networks outperform it for forecasting. Neural networks could have an overhead in term of the number of hyper-parameters to tune, but when using batching they scale up very easily and generalize well to a large number of time series (100K for M4). We are thus, pretty confident that, the two neural networks could forecast with the appropriate setting of hyper-parameters, other univariate time series beyond the M4 dataset.  
   
  \end{abstract}
 
@@ -92,7 +92,7 @@ The linear forecast is replaced by an RNN, which has for input the normalized an
 where $l$ is a state variable, $s$ is a seasonality coefficient, $\alpha$ and $\beta$ are network parameters, $m$ is the periodicity of the data.
 
 To model long-term dependencies in time series, ES-RNN uses dilated RNNs which allow to stack RNN cells by having skip connections between RNN cells . 
-The dilation parameters  are given in table \autoref{tab:dilations}  DRNN cells can be vanilla RNN, LSTM, GRU,  GRU cells provides the higher accuracy.
+The dilation parameters  are given in table \autoref{tab:dilations}.  DRNN cells can be vanilla RNN, LSTM, GRU,  GRU cells provides the higher accuracy.
 
 \begin{table}[!ht]
 	\centering
@@ -119,7 +119,7 @@ The dilation parameters  are given in table \autoref{tab:dilations}  DRNN cells 
 
  \subsection{Data Preparation}
  The M4 time series have different length, to allow vectorization and to take advantage of the GPUs, they are chopped using a predetermined cut off value.
- To the exception of the daily time series, for which the cut-off value is 200, 72 is used as the default value (\autoref{tab:cutoff}.
+ To the exception of the daily time series, for which the cut-off value is 200, 72 is used as the default value (\autoref{tab:cutoff}).
  
  \begin{table}[!ht]
 	\centering
@@ -136,7 +136,7 @@ The dilation parameters  are given in table \autoref{tab:dilations}  DRNN cells 
 \end{table}
 
 
- The batch size is by default 1024, we noticed that it affects the overall performance of the network, depending the time series frequency,
+ The batch size is by default 1024, we observe that, it affects the overall performance of the network, depending the time series frequency,
  too small the validation loss may jump up and down,  and  in some cases the larger the batch size, the better.
  
  For an hourly frequency, the effect of the batch size is given in table  \autoref{tab:batchsize} .
@@ -172,8 +172,9 @@ The dilation parameters  are given in table \autoref{tab:dilations}  DRNN cells 
 \caption{The input and ouput of the RNN are normalized and de-seasonalized, compared to N-BEATS which are not scaled.}
 \label{fig:normalizeddeseasonalized}
 \end{figure}
-Dropout or batch normalization did not provide any significant improvement, the smoothing and normalization of the data seems enough for a convergence to local minimum.
-In both networks, using the pinball loss function brought definitely a boost in performance compared to L2 or L1 losses. The pinball loss function is popular in forecasting. Two different slopes are used depending whether the forecast $\hat{y}_t$ value is greater
+Dropout or batch normalization do not provide any significant improvement, the smoothing and normalization of the data seems enough for a convergence to a local minimum.
+In both networks, using the pinball loss function brought definitely a boost in performance compared to L2 or L1 losses. The pinball loss function is popular in forecasting. 
+Two different slopes are used depending whether the forecast $\hat{y}_t$ value is greater
 or smaller than the truth value $y_t$. Two models are then trained corresponding to the lower and upper bounds of the desired level of prediction interval:
 \[
 	L_\alpha = 
