@@ -53,7 +53,7 @@ def get_config(interval):
             "thetas_dims": [2, 8],
             "nb_blocks_per_stack": 3,
             "hidden_layer_units": 256,
-            "share_weights_in_stack": True,
+            "share_weights_in_stack": False,
             "chop_val": 72,
             "variable": "Monthly",
             "seasonality": 12,

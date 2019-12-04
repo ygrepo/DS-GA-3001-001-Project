@@ -23,7 +23,7 @@ def get_config(interval):
         "print_output_stats": 3,
         "lr_anneal_rate": 0.5,
         "lr_anneal_step": 5,
-        "sample": False,
+        "sample": True,
         "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
         "save_model": SAVE_LOAD_TYPE.NO_ACTION,
@@ -143,7 +143,7 @@ def get_config(interval):
             "input_size": 24,
             "output_size": 48,
             "level_variability_penalty": 0,
-            "sample_ids": [],
+            #"sample_ids": [],
             "sample_ids": ["H344"],
         })
     else:
