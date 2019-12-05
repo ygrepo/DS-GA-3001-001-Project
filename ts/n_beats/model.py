@@ -213,7 +213,7 @@ class NBeatsNet(nn.Module):
         forecast = torch.zeros(
             # size=(backcast.shape[0], self.forecast_length,))  # maybe batch size here.
             # size=(backcast.shape[1], backcast.shape[0], self.forecast_length,))  # maybe batch size here.
-            size=(backcast.shape[0], backcast.shape[1], self.forecast_length,))  # maybe batch size here.
+            size=(backcast.shape[0], backcast.shape[1], self.forecast_length,))
         for stack_id in range(len(self.stacks)):
             for block_id in range(len(self.stacks[stack_id])):
                 b, f = self.stacks[stack_id][block_id](backcast)

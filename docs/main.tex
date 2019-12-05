@@ -33,6 +33,9 @@
 \usepackage{amsmath,amssymb,bm}
 \usepackage{caption}
 \captionsetup[figure]{labelfont=small, justification=centering}
+\usepackage{mathtools}
+
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 \newcommand{\p}{\mathrm{P}}
 % Linear Algebra
 \newcommand{\vect}[1]{\bm{#1}} % vectors
@@ -225,8 +228,7 @@ The dilation parameters  are given in table \autoref{tab:dilations}.  DRNN cells
 \end{table}
 
 
- The batch size is by default 1024, we observe that, it affects the overall performance of the network, depending the time series frequency,
- too small the validation loss may jump up and down,  and  in some cases the larger the batch size, the better.
+ The batch size is by default 1024, we observe that, it has no effects on the overall performance of the network.
  
  For an hourly frequency, the effect of the batch size is given in table  \autoref{tab:batchsize} .
  \begin{table}[!ht]
@@ -290,7 +292,7 @@ ES-RNN layers from top to bottom consist in a stack of dilated RNNs followed by 
 		\midrule
 	\end{tabular}
 	\caption{ES-RNN architecture. Let $b$ the batch size, l the length of the time series, s the embedding dimensional state size and h the length of the prediction.}
-	\label{tab:batchsize}
+	\label{tab:esrnnarchitecture}
 \end{table}
 
 
@@ -343,17 +345,74 @@ It is also extendable and the basic components are:
 \label{fig:nbeatsstack}
 \end{figure}
 
-\subsection{Additional model description}
-Any input x goes first through four linear layers followed by two interpolation functions, one for backcast: $g_\theta^b$ and the other for forecast: $g_\theta^f$.
+\subsection{Additional model details}
+The input $\vect{x}$ goes first through four linear layers followed by two interpolation functions, one for backcast: $g_\theta^b$ and the other for forecast: $g_\theta^f$.
 There are three types of blocks:
 \paragraph{generic}: $\hat{\vect{y}}_{i,j} = \matr{W}_{i,j} \theta_{i,j} + \vect{b}_{i,j}$. This block outputs are not interpretable.
-\paragraph{trend model}: the interpolation is a monotonic function: a polynomial of small degree $p$: 
-\small
-$g_\theta = \sum_{i=0}^p \theta_i t^i$ where $\vect{t} = [0,1,2,\cdots,H-2, H-1]^T/H$. The trend forecast has the form: 
+\paragraph{trend model}: the interpolation is a monotonic function, a polynomial of small degree $p$: \\
+$g_\theta = \sum_{i=0}^p \theta_i t^i$ where $\vect{t} = [0,1,2,\cdots,H-2, H-1]^T/H \text{ and p} \le 4$. \\
+The trend forecast has the form: 
 \[
 	\hat{\vect{y}}_{i,j}^{tr} = \matr{T} \theta_{i,j}
 \]
-One important point to make is that the weight could be shared among the stacks.
+The number of  $\theta$ parameters is less or equal to 10.
+\paragraph{seasonality model}: to capture cyclical, recurring patterns, this block performs a Fourier transform of the series: 
+\begin{align*}
+		g_\theta (t)		&= \sum_{i=0}^{\floor*{H/2-1}} \theta_i \cos{(2 \pi it)} + \theta_{i + \floor*{H/2}}  \sin{(2 \pi it)} \\
+						&	\text{ where } \theta_{i,j} \text{ are Fourier coefficients predicted by a FC network of layer} j \text{ of stack } i \\
+		\hat{\vect{y}}_{i,j}^{s} &= \matr{S} \theta_{i,j}		
+\end{align*}
+The weight could be shared among the blocks within the same stack and resulted in better performance of the validation set.
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{llllllll} 
+		\midrule
+			\multicolumn{7}{c} {\textbf{N-BEATS}} \\
+		\midrule
+			\multicolumn{7}{c} {time series $\in \mathbb{R}^{b \times W \times bc}$} \\
+		\midrule
+			\multicolumn{7}{c} {FC  $\in \mathbb{R}^{bc \times s}$} \\		
+		\midrule
+			\multicolumn{7}{c} {ReLU} \\		
+		\midrule
+			\multicolumn{7}{c} {FC  $\in \mathbb{R}^{s \times s}$} \\		
+		\midrule
+			\multicolumn{7}{c} {ReLU} \\		
+		\midrule
+			\multicolumn{7}{c} {FC  $\in \mathbb{R}^{s \times s}$} \\		
+		\midrule
+			\multicolumn{7}{c} {ReLU} \\		
+		\midrule
+			\multicolumn{7}{c} {backcast = $g_\theta^b(x)$} \\		
+			\multicolumn{7}{c} {forecast = $g_\theta^f(x)$} \\		
+		\midrule
+	\end{tabular}
+	\caption{N-BEATS architecture. Let $b$ the batch size, W is the number of input windows, bc backcast length, s is the size of the hidden layer.}
+	\label{tab:nbeatsstack}
+\end{table}
+
+\subsection{Training of the network}
+We split data into training and validation and test datasets, similarly to what we did for ES-RNN model, the only difference is that we dynamically determined the cut-off value by selecting the minimal size of the time series which
+are larger than the minimum length: backcast + forecast. We run various experiments with different configuration of the stacks, number of blocks per stack, 
+size of the hidden layer, the batch size and values  for the $\theta$ parameters.  We also trained the network for 100 epochs with an initial learning rate of 0.01,
+ which was progressively reduced by the scheduler to $1 \times 10^{-7}$.
+
+ The batch size is by default 1024, we observe that, it affects the overall performance of the network, depending the time series frequency,
+ too small the validation loss jumped up and down, and with larger batch size, the performance was better.
+ In addition, using dropout with a value of 0.,2 helps to have a good accuracy.
+
+Oreshkin et al. claimed that their model is interpretable when looking at the outputs of the trend or seasonality blocks. We did not obtain exactly the same results, and this is maybe due to the fact we did not
+do ensembling neither that we have a very deep architecture. They had 6 models for each time series category,  a very deep network of total depth 150 layers, trained each model on input windows of
+different length: $2H,3H, \cdots, 7H$ and followed a bagging procedure four 180 models.
+
+\begin{figure}[ht]
+\centering
+	\includegraphics[width=0.8\columnwidth]{M1_stack_reload_100.png} 
+\caption{Trend and seasonal coefficients for the backcast and forecast outputs of the M1 time series.}
+\label{fig:m1trendseasonality}
+\end{figure}
+
 
 \section*{References}
 
