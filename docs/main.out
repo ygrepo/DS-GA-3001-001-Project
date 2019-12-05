@@ -1,0 +1,10 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Problem Description}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Data Description}{section.2}% 3
+\BOOKMARK [1][-]{section.3}{ES-RNN}{}% 4
+\BOOKMARK [2][-]{subsection.3.1}{Model Description}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.2}{Data Preparation}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.3}{Deep learning architecture}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.4}{Training of the network}{section.3}% 8
+\BOOKMARK [1][-]{section.4}{N-BEATS}{}% 9
+\BOOKMARK [2][-]{subsection.4.1}{Model Description}{section.4}% 10
