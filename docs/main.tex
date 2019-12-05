@@ -326,7 +326,8 @@ We also changed the batch size as detailed in the previous section and replaced 
 
 \subsection{Model Description}
 N-Beats architecture by design is simple and generic, yet expressive (deep). It does not rely on any time-series specific feature engineering or input scaling.
-It is also extendable and the basic components are:\begin{itemize}
+It is also extendable and the basic components are:
+\begin{itemize}
  	\item[-]  \textbf{Block}
  	\paragraph{} A block accepts an input $\vect{x}$ which is a history lookback window, also known as "backcast". And the block outputs two vectors $\hat{\vect{x}}$ and $\hat{\vect{y}}$,  $\hat{\vect{x}}$ is the block's best estimate
 	of $\vect{x}$, $\hat{\vect{y}}$ is the block's forward forecast of length $H$. The length of the input window is a multiple of the forecast horizon $H$, and $\vect{x}$ value range is 2$H$ to 7$H$. Each block removes the portion of the signal
@@ -342,6 +343,17 @@ It is also extendable and the basic components are:\begin{itemize}
 \label{fig:nbeatsstack}
 \end{figure}
 
+\subsection{Additional model description}
+Any input x goes first through four linear layers followed by two interpolation functions, one for backcast: $g_\theta^b$ and the other for forecast: $g_\theta^f$.
+There are three types of blocks:
+\paragraph{generic}: $\hat{\vect{y}}_{i,j} = \matr{W}_{i,j} \theta_{i,j} + \vect{b}_{i,j}$. This block outputs are not interpretable.
+\paragraph{trend model}: the interpolation is a monotonic function: a polynomial of small degree $p$: 
+\small
+$g_\theta = \sum_{i=0}^p \theta_i t^i$ where $\vect{t} = [0,1,2,\cdots,H-2, H-1]^T/H$. The trend forecast has the form: 
+\[
+	\hat{\vect{y}}_{i,j}^{tr} = \matr{T} \theta_{i,j}
+\]
+One important point to make is that the weight could be shared among the stacks.
 
 \section*{References}
 
