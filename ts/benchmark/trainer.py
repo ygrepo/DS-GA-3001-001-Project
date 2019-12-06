@@ -91,6 +91,6 @@ class Trainer:
             #plt.show()
             plt.tight_layout()
             sns.despine()
-            plt.savefig(self.figure_path / (ts_label + "_time_series.png"), bbox_inches="tight", format="eps")
+            plt.savefig(self.figure_path / (ts_label + "_time_series.eps"), bbox_inches="tight", format="eps")
 
         print("Total Training in mins: %5.2f" % ((time.time() - start_time) / 60))

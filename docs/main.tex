@@ -96,7 +96,7 @@ techniques with a recurrent neural network (RNN). Boris Oreshkin et al. want to 
 \section{Problem Description}
 \label{problemdescription}
 Univariate point forecasting in discrete time consists in predicting future values given a series of observations.
-\par\noindent\rule{\textwidth}{0.4pt}
+
 \begin{itemize}
 	\item Given an history $[ y_1, \cdots, y_T ]$
 	\item TASK: predict $[y_{T+1}, \cdots , y_{T+H} ]$
@@ -236,7 +236,7 @@ The dilation parameters  are given in table \autoref{tab:dilations}.  DRNN cells
 \end{table}
 
 
- The batch size is by default 1024, we observe that, it has no effects on the overall performance of the network.
+ The batch size is by default 1024, we observe that, it has no major effects on the overall performance of the network.
  
  For an hourly frequency, the effect of the batch size is given in table  \autoref{tab:batchsize} .
  \begin{table}[!ht]
@@ -340,7 +340,7 @@ It is also extendable and the basic components are:
 \begin{itemize}
  	\item[-]  \textbf{Block}
  	\paragraph{} A block accepts an input $\vect{x}$ which is a history lookback window, also known as "backcast". And the block outputs two vectors $\hat{\vect{x}}$ and $\hat{\vect{y}}$,  $\hat{\vect{x}}$ is the block's best estimate
-	of $\vect{x}$, $\hat{\vect{y}}$ is the block's forward forecast of length $H$. The length of the input window is a multiple of the forecast horizon $H$, and $\vect{x}$ value range is 2$H$ to 7$H$. Each block removes the portion of the signal
+	of $\vect{x}$, $\hat{\vect{y}}$ is the block's forward forecast of length $H$. The length of the input window is a multiple of the forecast horizon $H$, and $\vect{x}$ value range is  from 2$H$ to 7$H$. Each block removes the portion of the signal
 	it can explain well, making the forecast job of the downstream blocks easier.  This also facilitates more fluid gradient backpropagation.
 	\item[-]  \textbf{Stack}
 	\paragraph{} A stack is a collection of blocks and stacks can be hierarchically organized to make a very deep architecture. Each block provides a partial forecast that is first aggregated at the stack level and then at the overall network level.
@@ -408,11 +408,11 @@ size of the hidden layer, the batch size and values  for the $\theta$ parameters
 
  The batch size is by default 1024, we observe that, it affects the overall performance of the network, depending the time series frequency,
  too small the validation loss jumped up and down, and with larger batch size, the performance was better.
- In addition, using dropout with a value of 0.,2 helps to have a good accuracy.
+ In addition, using dropout with a value of 0.2 helps to have a good accuracy.
 
 Oreshkin et al. claimed that their model is interpretable when looking at the outputs of the trend or seasonality blocks. We did not obtain exactly the same results, and this is maybe due to the fact we did not
-do ensembling neither that we have a very deep architecture. They had 6 models for each time series category,  a very deep network of total depth 150 layers, trained each model on input windows of
-different length: $2H,3H, \cdots, 7H$ and followed a bagging procedure four 180 models.
+do ensembling or that we did not have a very deep architecture. They had 6 models for each time series category,  a very deep network of total depth 150 layers, trained each model on input windows of
+different length: $2H,3H, \cdots, 7H$ and followed a bagging procedure for 180 models.
 
 \begin{figure}[ht]
 \centering
@@ -427,8 +427,8 @@ different length: $2H,3H, \cdots, 7H$ and followed a bagging procedure four 180 
 
 We used ARIMA and Gaussian Process to generate our baselines. ARIMA was one of the method used by the M4 competition organizers to generate the benchmarks.
 We also decided to use $\mathcal{GP}$ for their simplicity, the possibility to select different kernels and the possibility to have confidence intervals related to theirs forecasting.
-On a single time series traditional statistical models like ARIMA are difficult to outperform, the downside is that they do not scale up with the number of time series, since each time series require to carefully
-tune the (p,q,d) parameters. ES-RNN seemed to perform better than N-BEATS but requires more tuning and go deeper in the number of layers.
+On a single time series, traditional statistical models like ARIMA are difficult to outperform, the downside is that they do not scale up with the number of time series, since each time series require to carefully
+tune the (p,q,d) parameters of an ARIMA model. ES-RNN seemed to perform better than N-BEATS which requires more tuning and to go deeper by increasing the number of layers.
 
 \begin{table}[!ht]
 	\centering
@@ -463,7 +463,7 @@ tune the (p,q,d) parameters. ES-RNN seemed to perform better than N-BEATS but re
 		\bottomrule
 	\end{tabular}
 	\caption{Performance on the M4 test set, in bold when the models performed better than in the original papers.}
-		\label{fig:esrnnnbeatsdiff1}
+	\label{fig:esrnnnbeatsdiff1}
 \end{table}
 
 \begin{table}[!ht]
@@ -486,7 +486,8 @@ tune the (p,q,d) parameters. ES-RNN seemed to perform better than N-BEATS but re
 		Overall & 14.58 & 10.51 & \B 9.78 \\		
 		\bottomrule
 	\end{tabular}
-	\caption{ES-RNN: breakdown of sMAPE by time period and category}
+	\caption{ES-RNN: breakdown of sMAPE by time period and category, in bold when the models performed better than in the original paper.}
+	\label{fig:esrnnnbeatsdiff2}
 \end{table}
 
 \begin{table}[!ht]
@@ -512,33 +513,61 @@ tune the (p,q,d) parameters. ES-RNN seemed to perform better than N-BEATS but re
 	\caption{N-BEATS: breakdown of sMAPE by time period and category}
 \end{table}
 
-\newpage
+The Gaussian process performed the worst on for forecasting, maybe due to wrong choice of kernel.
 
 \begin{figure}[!h]
   \centering
   \begin{tabular}[c]{cc}
     \begin{subfigure}[c]{0.6\textwidth}
       \includegraphics[width=\textwidth]{H344_ARIMA.eps}
-      \caption{ARIMA predictions for H344}
+      \caption{ARIMA predictions}
       \label{fig:stackpred1}
     \end{subfigure}&
     \begin{subfigure}[c]{0.6\textwidth}
       \includegraphics[width=\textwidth]{H344_esrnn_time_series.png}
-      \caption{ES-RNN predictions for H344}
+      \caption{ES-RNN predictions}
       \label{fig:stackpred2}
     \end{subfigure}\\
     \begin{subfigure}[c]{0.5\textwidth}
       \includegraphics[width=\textwidth]{H344_GP_time_series.eps}
-      \caption{GP predictions for H344}
+      \caption{GP predictions}
       \label{fig:stackpred3}
     \end{subfigure}&
     \begin{subfigure}[c]{0.6\textwidth}
       \includegraphics[width=\textwidth]{H344_nbeats_time_series.png}
-      \caption{N-BEATS predictions for H344}
+      \caption{N-BEATS predictions}
       \label{fig:stackpred4}
     \end{subfigure}\\
   \end{tabular}    
   \caption{Predictions for H344 time series: ARIMA (top-left), ES-RNN (top-right), \\ GP (bottom-left), , N-BEATS (bottom-right)}
+  \label{fig:stackpred}
+\end{figure}
+
+\begin{figure}[!h]
+  \centering
+  \begin{tabular}[c]{cc}
+    \begin{subfigure}[c]{0.6\textwidth}
+      \includegraphics[width=\textwidth]{M1_ARIMA.eps}
+      \caption{ARIMA predictions}
+      \label{fig:stackpred1}
+    \end{subfigure}&
+    \begin{subfigure}[c]{0.6\textwidth}
+      \includegraphics[width=\textwidth]{M1_esrnn_time_series.png}
+      \caption{ES-RNN predictions}
+      \label{fig:stackpred2}
+    \end{subfigure}\\
+    \begin{subfigure}[c]{0.5\textwidth}
+      \includegraphics[width=\textwidth]{M1_GP_time_series.eps}
+      \caption{GP predictions}
+      \label{fig:stackpred3}
+    \end{subfigure}&
+    \begin{subfigure}[c]{0.6\textwidth}
+      \includegraphics[width=\textwidth]{M1_nbeats_time_series.png}
+      \caption{N-BEATS predictions}
+      \label{fig:stackpred4}
+    \end{subfigure}\\
+  \end{tabular}    
+  \caption{Predictions for M1 time series: ARIMA (top-left), ES-RNN (top-right), \\ GP (bottom-left), N-BEATS (bottom-right)}
   \label{fig:stackpred}
 \end{figure}
 
