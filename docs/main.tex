@@ -33,7 +33,12 @@
 \usepackage{amsmath,amssymb,bm}
 \usepackage{caption}
 \captionsetup[figure]{labelfont=small, justification=centering}
+\usepackage{subcaption}
 \usepackage{mathtools}
+\usepackage{lmodern}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{etoolbox}
 
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 \newcommand{\p}{\mathrm{P}}
@@ -42,6 +47,9 @@
 \newcommand{\matr}[1]{\bm{#1}} % matrices and tensors
 \newcommand{\tr}[1]{#1^{\top}} % transpose
 \renewcommand{\sp}[2]{#1^{\top}#2}   %scalar product
+\renewrobustcmd{\bfseries}{\fontseries{b}\selectfont}
+\renewrobustcmd{\boldmath}{}
+\newrobustcmd{\B}{\bfseries}
 
 \title{Univariate Time Series Forecasting using ES-RNN and N-BEATS}
 
@@ -411,6 +419,127 @@ different length: $2H,3H, \cdots, 7H$ and followed a bagging procedure four 180 
 	\includegraphics[width=0.8\columnwidth]{M1_stack_reload_100.png} 
 \caption{Trend and seasonal coefficients for the backcast and forecast outputs of the M1 time series.}
 \label{fig:m1trendseasonality}
+\end{figure}
+
+
+\section{Model comparison}
+\label{modelcomparison}
+
+We used ARIMA and Gaussian Process to generate our baselines. ARIMA was one of the method used by the M4 competition organizers to generate the benchmarks.
+We also decided to use $\mathcal{GP}$ for their simplicity, the possibility to select different kernels and the possibility to have confidence intervals related to theirs forecasting.
+On a single time series traditional statistical models like ARIMA are difficult to outperform, the downside is that they do not scale up with the number of time series, since each time series require to carefully
+tune the (p,q,d) parameters. ES-RNN seemed to perform better than N-BEATS but requires more tuning and go deeper in the number of layers.
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{lllllll} 
+		\toprule
+		& \multicolumn{6}{c} {\textbf{sMAPE by Frequency}} \\
+		\textbf{Model} & \textbf{H344} & \textbf{D1} & \textbf{W246} & \textbf{M1} & \textbf{Q66} & \textbf{Y1}  \\
+		\midrule
+		ARIMA & \B 23.24 & \B 0.28 & \B 5.51 & 30.40 & 5.96 & 11.20 \\
+		\midrule
+		GP  & 94.93	&  22.37 & 32.7	 & 19.04 & 35.02 & 20 \\
+		\midrule
+		ES-RNN 	& 36.68 	& 6.48  & 23.44 & \B 10.19 & 10.2 & \B 1.99 \\
+		\midrule
+		N-BEATS 	& 43.98 	& 6.54 & 30.83 & 24.68	&  \B 1.47 & 9.53 \\
+		 \bottomrule
+	\end{tabular}
+	\caption{Comparison of results on specific time series, in bold the best score, the lower the better.}
+	\label{fig:modelcomparision}
+\end{table}
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{llllllll} 
+	\toprule
+		& \multicolumn{6}{c} {\textbf{sMAPE by Frequency}} \\
+		\textbf{Model} & \textbf{Hourly} & \textbf{Daily} & \textbf{Weekly} & \textbf{Monthly} & \textbf{Quarterly}   & \textbf{Yearly} \\
+		\midrule
+		ES-RNN 	& 30.26 	& \B 2.97  & 14.84 & \B 9.78 &  10.51 & 14.58 \\
+		\midrule
+		N-BEATS 	&  20.1 & 4.08 & 16.05 & 22.22	& 11.94 & 13.12 \\
+		\bottomrule
+	\end{tabular}
+	\caption{Performance on the M4 test set, in bold when the models performed better than in the original papers.}
+		\label{fig:esrnnnbeatsdiff1}
+\end{table}
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{cccc}
+	 \toprule
+		\textbf{Data Category} & \textbf{Yearly} & \textbf{Quarterly} & \textbf{Monthly} \\
+		Demographic &  \B 11.45 & 11.67 & \B 5.76 \\
+		\midrule
+		Finance & \B 16.31 & \B 10.41 & \B 10.8 \\
+		\midrule
+		Industry & 21.98 & 8.74 & \B 11.3 \\
+		\midrule
+		Macro & \B 14.21 & 10.13& \B 11.7 \\
+		\midrule
+		Micro & \B 10.93 & 11.96 & \B 8.02 \\
+		\midrule
+		Other & 16.27 & 7.87 & \B 7.76 \\
+		\midrule
+		Overall & 14.58 & 10.51 & \B 9.78 \\		
+		\bottomrule
+	\end{tabular}
+	\caption{ES-RNN: breakdown of sMAPE by time period and category}
+\end{table}
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{cccc}
+	 \toprule
+		\textbf{Data Category} & \textbf{Yearly} & \textbf{Quarterly} & \textbf{Monthly} \\
+		Demographic &  10.34 & 11.74 & 5.57 \\
+		\midrule
+		Finance & 14.11 & 13.90 & 15.36 \\
+		\midrule
+		Industry & 17.16 & 10.85 & 14.76 \\
+		\midrule
+		Macro & 13.39 & 11.35 & 14.6 \\
+		\midrule
+		Micro & 10.92 & 12.22 & 15.2 \\
+		\midrule
+		Other & 13.62 & 7.90 & 13.89 \\
+		\midrule
+		Overall & 13.29 & 11.94 & 13.88 \\		
+		\bottomrule
+	\end{tabular}
+	\caption{N-BEATS: breakdown of sMAPE by time period and category}
+\end{table}
+
+\newpage
+
+\begin{figure}[!h]
+  \centering
+  \begin{tabular}[c]{cc}
+    \begin{subfigure}[c]{0.6\textwidth}
+      \includegraphics[width=\textwidth]{H344_ARIMA.eps}
+      \caption{ARIMA predictions for H344}
+      \label{fig:stackpred1}
+    \end{subfigure}&
+    \begin{subfigure}[c]{0.6\textwidth}
+      \includegraphics[width=\textwidth]{H344_esrnn_time_series.png}
+      \caption{ES-RNN predictions for H344}
+      \label{fig:stackpred2}
+    \end{subfigure}\\
+    \begin{subfigure}[c]{0.5\textwidth}
+      \includegraphics[width=\textwidth]{H344_GP_time_series.eps}
+      \caption{GP predictions for H344}
+      \label{fig:stackpred3}
+    \end{subfigure}&
+    \begin{subfigure}[c]{0.6\textwidth}
+      \includegraphics[width=\textwidth]{H344_nbeats_time_series.png}
+      \caption{N-BEATS predictions for H344}
+      \label{fig:stackpred4}
+    \end{subfigure}\\
+  \end{tabular}    
+  \caption{Predictions for H344 time series: ARIMA (top-left), ES-RNN (top-right), \\ GP (bottom-left), , N-BEATS (bottom-right)}
+  \label{fig:stackpred}
 \end{figure}
 
 
