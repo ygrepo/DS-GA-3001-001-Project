@@ -429,6 +429,7 @@ We used ARIMA and Gaussian Process to generate our baselines. ARIMA was one of t
 We also decided to use $\mathcal{GP}$ for their simplicity, the possibility to select different kernels and the possibility to have confidence intervals related to theirs forecasting.
 On a single time series, traditional statistical models like ARIMA are difficult to outperform, the downside is that they do not scale up with the number of time series, since each time series require to carefully
 tune the (p,q,d) parameters of an ARIMA model. ES-RNN seemed to perform better than N-BEATS which requires more tuning and to go deeper by increasing the number of layers.
+In term of numbers parameters, ES-RNN uses about 500,000 parameters and N-BEATS with an hidden size of 256 and one stack of two blocks (trend and seasonal) has about 400,000 parameters.
 
 \begin{table}[!ht]
 	\centering
@@ -571,6 +572,13 @@ The Gaussian process performed the worst on for forecasting, maybe due to wrong 
   \label{fig:stackpred}
 \end{figure}
 
+\section{Conclusion}
+\label{conclusion}
+
+Pure DL models which provide interpretable results and do not require hand-crafted smoothing, are very powerful. Therefore neural networks are definitely the future for univariate forecasting. 
+The question is still open whether the next generation of models will adopt an hybrid approach or not. Mean Squared error or L2 loss are ill-adapted to favor interesting  vs. naive forecasts.
+Our effort to wrap the sMAPE into a loss function were not conclusive. Nevertheless having an objective function, and in addition robust DL architectures, which take into account very long temporal dependencies,
+are probably the next focus of research in the domain of univariate forecasting.
 
 \section*{References}
 
