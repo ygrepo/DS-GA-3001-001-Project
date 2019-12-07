@@ -79,9 +79,12 @@
 \maketitle
 
 \begin{abstract}
-  In this work, we seek to replicate and improve the results reached by two neural networks: \textbf{ES-RNN}  \cite{DBLP:journals/corr/abs-1907-03329} and \textbf{N-BEATS} \cite{DBLP:journals/corr/abs-1905-10437} on the M4 dataset competition.
-  We also run different experimentations to compare the performances of these two deep learning techniques to a more classical statistical approach like ARIMA or Gaussian Process ($\mathcal{GP}$).
-  We demonstrate that although Gaussian processes could be powerful for sampling tasks and simpler to configure, these neural networks outperform it for forecasting. Neural networks could have an overhead in term of the number of hyper-parameters to tune, but when using batching they scale up very easily and generalize well to a large number of time series (100K for M4). We are thus, pretty confident that, the two neural networks could forecast with the appropriate setting of hyper-parameters, other univariate time series beyond the M4 dataset.  
+  In this work, we seek to replicate and improve the results reached by two neural networks: \textbf{ES-RNN}  \cite{DBLP:journals/corr/abs-1907-03329} and \textbf{N-BEATS} \cite{DBLP:journals/corr/abs-1905-10437} 
+  on the M4 dataset competition (\footnote{code available at \url{https://github.com/ygrepo/DS-GA-3001-001-Project}.}).
+  We also run different experiments to compare the performances of these two deep learning techniques to a more classical statistical approach like ARIMA or Gaussian Process ($\mathcal{GP}$).
+  We demonstrate that although Gaussian processes could be powerful for sampling tasks and simpler to configure, these neural networks outperform it for forecasting. 
+  Neural networks could have an overhead in term of the number of hyper-parameters to tune, but when using batching they scale up very easily and generalize well to a large number of time series (100K for M4). 
+  We are thus, pretty confident that, the two neural networks could forecast with the appropriate setting of hyper-parameters, other univariate time series beyond the M4 dataset.  
   
  \end{abstract}
 
@@ -93,8 +96,10 @@ These competitions also known as the "Makridakis competitions", have been happen
 starting from 1000 in 1982  to 100,000 in 2018, for the M4 competition. They attract people from academia as well practitioners, the last winner is Slawek Smyl, from Uber Technologies. 
 The model created by Smyl is a hybrid approach combining Holts-Winter smoothing
 techniques with a recurrent neural network (RNN). Boris 
-Oreshkin et al.  \cite{DBLP:journals/corr/abs-1905-10437} want to challenge the conclusion that, mixed techniques are the future by proposing a pure DL model with interpretable outputs: \textbf{N-Beats}, which they claim outperforms \textbf{ES-RNN}, Smyl's model. 
-N-Beats could be a very deep DL model and it is important for their authors that, in addition to hight accuracy, N-Beats has interpretable outputs which can match established statistical models such as ETS and ARIMA, robust, efficient, and automatic models. 
+\citet{DBLP:journals/corr/abs-1905-10437} wanted to challenge the conclusion that, mixed techniques are the future by proposing a pure DL model with interpretable outputs: \textbf{N-Beats}, 
+which they claimed outperforms \textbf{ES-RNN}, Smyl's model. 
+N-Beats could be a very deep DL model and it is important for their authors that, in addition to hight accuracy, 
+N-Beats has interpretable outputs which can match established statistical models such as ETS and ARIMA, robust, efficient, and automatic models. 
 
 
 \section{Problem Description}
@@ -182,7 +187,7 @@ They have different length ranging from 7 to about 1000 observations.
 
 \subsection{Model Description}
 
-ES-RNN algorithm consists in two major layers: a preprocessing layer which uses Holt-Winters smoothing technic to extract trend and seasonality parameters and a dilated RNN network.
+ES-RNN algorithm consists in two major layers: a preprocessing layer which uses Holt-Winters smoothing technique to extract trend and seasonality parameters and a dilated RNN network.
 The Holt-Winter parameters are part of the back-propagation and are tuned as the network learns the characteristics of the time series. The ES-RNN model uses a modified version of the Holt-Winters formula,
 in which there is no local linear level coefficient, and level and seasonality terms are scaled instead of subtracted. 
 The linear forecast is replaced by an RNN, which has for input the normalized and de-seasonalized prior observations. 
@@ -594,6 +599,11 @@ Pure DL models which provide interpretable results and do not require hand-craft
 The question is still open whether the next generation of models will adopt an hybrid approach or not. Mean Squared error or L2 loss are ill-adapted to favor interesting  vs. naive forecasts.
 Our effort to wrap the sMAPE into a loss function were not conclusive. Nevertheless having an objective function, and in addition robust DL architectures, which take into account very long temporal dependencies,
 are probably the next focus of research in the domain of univariate forecasting.
+
+%\section{Students contribution}
+%YG: implemented code based, wrote report and slides
+%YG + ZC: run experiments
+%YG + ZC + SP: presentation
 
 
 \bibliographystyle{plainnat}
