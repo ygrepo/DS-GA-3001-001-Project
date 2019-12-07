@@ -10,7 +10,7 @@
 % to compile a preprint version, e.g., for submission to arXiv, add add the
 % [preprint] option:
 %     \usepackage[preprint]{neurips_2019}
-
+\PassOptionsToPackage{numbers}{natbib}
 % to compile a camera-ready version, add the [final] option, e.g.:
 \usepackage[final]{neurips_2019}
 
@@ -79,7 +79,7 @@
 \maketitle
 
 \begin{abstract}
-  In this work, we seek to replicate and improve the results reached by two neural networks: \textbf{ES-RNN} and \textbf{N-BEATS} on the M4 dataset competition.
+  In this work, we seek to replicate and improve the results reached by two neural networks: \textbf{ES-RNN}  \cite{DBLP:journals/corr/abs-1907-03329} and \textbf{N-BEATS} \cite{DBLP:journals/corr/abs-1905-10437} on the M4 dataset competition.
   We also run different experimentations to compare the performances of these two deep learning techniques to a more classical statistical approach like ARIMA or Gaussian Process ($\mathcal{GP}$).
   We demonstrate that although Gaussian processes could be powerful for sampling tasks and simpler to configure, these neural networks outperform it for forecasting. Neural networks could have an overhead in term of the number of hyper-parameters to tune, but when using batching they scale up very easily and generalize well to a large number of time series (100K for M4). We are thus, pretty confident that, the two neural networks could forecast with the appropriate setting of hyper-parameters, other univariate time series beyond the M4 dataset.  
   
@@ -93,7 +93,7 @@ These competitions also known as the "Makridakis competitions", have been happen
 starting from 1000 in 1982  to 100,000 in 2018, for the M4 competition. They attract people from academia as well practitioners, the last winner is Slawek Smyl, from Uber Technologies. 
 The model created by Smyl is a hybrid approach combining Holts-Winter smoothing
 techniques with a recurrent neural network (RNN). Boris 
-Oreshkin et al. want to challenge the conclusion that, mixed techniques are the future by proposing a pure DL model with interpretable outputs: \textbf{N-Beats}, which they claim outperforms \textbf{ES-RNN}, Smyl's model. 
+Oreshkin et al.  \cite{DBLP:journals/corr/abs-1905-10437} want to challenge the conclusion that, mixed techniques are the future by proposing a pure DL model with interpretable outputs: \textbf{N-Beats}, which they claim outperforms \textbf{ES-RNN}, Smyl's model. 
 N-Beats could be a very deep DL model and it is important for their authors that, in addition to hight accuracy, N-Beats has interpretable outputs which can match established statistical models such as ETS and ARIMA, robust, efficient, and automatic models. 
 
 
@@ -196,7 +196,7 @@ The linear forecast is replaced by an RNN, which has for input the normalized an
 \end{align*}
 where $l$ is a state variable, $s$ is a seasonality coefficient, $\alpha$ and $\beta$ are network parameters, $m$ is the periodicity of the data.
 
-To model long-term dependencies in time series, ES-RNN uses dilated RNNs which allow to stack RNN cells by having skip connections between RNN cells . 
+To model long-term dependencies in time series, ES-RNN uses dilated RNNs  \cite{DBLP:journals/corr/abs-1710-02224} which allow to stack RNN cells by having skip connections between RNN cells . 
 The dilation parameters  are given in table \autoref{tab:dilations}.  DRNN cells can be vanilla RNN, LSTM, GRU,  GRU cells provided for us the higher accuracy.
 
 \begin{table}[!ht]
@@ -311,7 +311,7 @@ ES-RNN layers from top to bottom consist in a stack of dilated RNNs followed by 
 
 
 Dropout or batch normalization did not provide any significant improvement, the smoothing and normalization of the data seemed enough for a convergence to a local minimum.
-In both networks, using the pinball loss function brought definitely a boost in performance compared to L2 or L1 losses. The pinball loss function is popular in forecasting. 
+In both networks, using the pinball loss \cite{pinballloss}  function brought definitely a boost in performance compared to L2 or L1 losses. The pinball loss function is popular in forecasting. 
 Two different slopes are used depending whether the forecast $\hat{y}_t$ value is greater
 or smaller than the truth value $y_t$. Two models are then trained, corresponding to the lower and upper bounds of the desired level of prediction interval (\autoref{fig:pinballloss}):
 \[
@@ -466,7 +466,7 @@ We verified visually the results using sMAPE  scoring by plotting for specific t
       \label{fig:H344stackpred4}
     \end{subfigure}\\
   \end{tabular}    
-  \caption{Predictions for H344 time series: ARIMA (top-left), ES-RNN (top-right), \\ GP (bottom-left), , N-BEATS (bottom-right)}
+  \caption{Predictions for H344 time series: ARIMA (top-left), ES-RNN (top-right), \\ GP (bottom-left), N-BEATS (bottom-right)}
   \label{fig:H344stackpred}
 \end{figure}
 
@@ -595,28 +595,7 @@ The question is still open whether the next generation of models will adopt an h
 Our effort to wrap the sMAPE into a loss function were not conclusive. Nevertheless having an objective function, and in addition robust DL architectures, which take into account very long temporal dependencies,
 are probably the next focus of research in the domain of univariate forecasting.
 
-\section*{References}
 
-References follow the acknowledgments. Use unnumbered first-level heading for
-the references. Any choice of citation style is acceptable as long as you are
-consistent. It is permissible to reduce the font size to \verb+small+ (9 point)
-when listing the references. {\bf Remember that you can use more than eight
-  pages as long as the additional pages contain \emph{only} cited references.}
-\medskip
-
-\small
-
-[1] Alexander, J.A.\ \& Mozer, M.C.\ (1995) Template-based algorithms for
-connectionist rule extraction. In G.\ Tesauro, D.S.\ Touretzky and T.K.\ Leen
-(eds.), {\it Advances in Neural Information Processing Systems 7},
-pp.\ 609--616. Cambridge, MA: MIT Press.
-
-[2] Bower, J.M.\ \& Beeman, D.\ (1995) {\it The Book of GENESIS: Exploring
-  Realistic Neural Models with the GEneral NEural SImulation System.}  New York:
-TELOS/Springer--Verlag.
-
-[3] Hasselmo, M.E., Schnell, E.\ \& Barkai, E.\ (1995) Dynamics of learning and
-recall at excitatory recurrent synapses and cholinergic modulation in rat
-hippocampal region CA3. {\it Journal of Neuroscience} {\bf 15}(7):5249-5262.
-
+\bibliographystyle{plainnat}
+\bibliography{references}
 \end{document}
