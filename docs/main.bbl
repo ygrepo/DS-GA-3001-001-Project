@@ -1,5 +1,5 @@
 \newcommand{\www}[1]{Proc. of the #1 Intl. Conf. on World Wide Web}
-\begin{thebibliography}{4}
+\begin{thebibliography}{5}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -33,5 +33,11 @@ Andrew Redd, Kaung Khin, and Aldo Marini.
 \newblock Fast {ES-RNN:} {A} {GPU} implementation of the {ES-RNN} algorithm.
 \newblock \emph{CoRR}, abs/1907.03329, 2019.
 \newblock URL \url{http://arxiv.org/abs/1907.03329}.
+
+\bibitem[Vincent Le~Guen(2019)]{dilateloss}
+Nicolas~Thome Vincent Le~Guen.
+\newblock Shape and time distortion loss for training deep time series
+  forecasting models.
+\newblock \emph{arXiv:1909.09020}, 2019.
 
 \end{thebibliography}

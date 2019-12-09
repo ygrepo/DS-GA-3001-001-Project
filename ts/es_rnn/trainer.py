@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 
 from ts.abstract_trainer import BaseTrainer
+from ts.utils.dilate_loss import dilate_loss_wrapper
 from ts.utils.helper_funcs import plot_ts
 from ts.utils.loss_modules import np_sMAPE, np_MASE, np_mase
 
@@ -24,7 +25,12 @@ class ESRNNTrainer(BaseTrainer):
                                                                                   idx)
 
         # Computing loss between predicted and truth training data deseasonalized and normalized.
-        loss = self.criterion(network_pred, network_act)
+        if self.config["loss"] == "dilate":
+            loss, _, _ = dilate_loss_wrapper(network_pred.permute(1, 0, 2).contiguous(),
+                                             network_act.permute(1, 0, 2).contiguous(), 0.5, 0.01,
+                                             self.config["device"])
+        else:
+            loss = self.criterion(network_pred, network_act)
         loss.backward()
         nn.utils.clip_grad_value_(self.model.parameters(), self.config["gradient_clipping"])
         self.optimizer.step()
@@ -44,12 +50,18 @@ class ESRNNTrainer(BaseTrainer):
                 _, _, (hold_out_pred, network_output_non_train), \
                 (hold_out_act, hold_out_act_deseas_norm), _ = self.model(train, val, test, info_cat, idx,
                                                                          testing=testing,
-                                                                         debugging=debugging, figure_path=self.figure_path)
+                                                                         debugging=debugging,
+                                                                         figure_path=self.figure_path)
                 # Compute loss between normalized and deseasonalized predictions and
                 # either validation or test data depending the value of the flag testing
                 # hold_out_loss += self.criterion(network_output_non_train.unsqueeze(0).float(),
                 #                                 hold_out_act_deseas_norm.unsqueeze(0).float())
-                hold_out_loss += self.criterion(hold_out_pred, hold_out_act)
+                if self.config["loss"] == "dilate":
+                    hold_out_loss_t, _, _ = dilate_loss_wrapper(hold_out_pred, hold_out_act, 0.5, 0.01,
+                                                                self.config["device"])
+                    hold_out_loss += hold_out_loss_t
+                else:
+                    hold_out_loss += self.criterion(hold_out_pred, hold_out_act)
                 acts.extend(hold_out_act.view(-1).cpu().detach().numpy())
                 total_act = torch.cat((train, hold_out_pred), dim=1)
                 total_acts.extend(total_act.view(-1).cpu().detach().numpy())

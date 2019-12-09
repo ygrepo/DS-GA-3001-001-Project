@@ -16,13 +16,14 @@ def get_config(interval):
         "num_of_train_epochs": 100,
         "num_of_train_epochs_sampling": 100,
         "num_of_categories": 6,  # in data provided
-        "batch_size": 2048,
+        "batch_size": 128,
         "gradient_clipping": 20,
         "sample": True,
         "reload": SAVE_LOAD_TYPE.NO_ACTION,
         "add_run_id": False,
         "save_model": SAVE_LOAD_TYPE.NO_ACTION,
-        "plot_ts": True
+        "plot_ts": True,
+        "loss": ""
     }
 
     if interval == "Quarterly":
