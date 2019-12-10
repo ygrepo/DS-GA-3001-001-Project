@@ -367,15 +367,15 @@ It is also extendable and the basic components are:
 \subsection{Additional model details}
 The input $\vect{x}$ goes first through four linear layers followed by two interpolation functions, one for backcast: $g_\theta^b$ and the other for forecast: $g_\theta^f$  (\autoref{tab:nbeatsstack}).
 There are three types of blocks:
-\paragraph{generic}: $\hat{\vect{y}}_{i,j} = \matr{W}_{i,j} \theta_{i,j} + \vect{b}_{i,j}$. This block outputs are not interpretable.
-\paragraph{trend model}: the interpolation is a monotonic function, a polynomial of small degree $p$: \\
+\paragraph{generic block}: $\hat{\vect{y}}_{i,j} = \matr{W}_{i,j} \theta_{i,j} + \vect{b}_{i,j}$. This block outputs are not interpretable.
+\paragraph{trend block}: the interpolation is a monotonic function, a polynomial of small degree $p$: \\
 $g_\theta = \sum_{i=0}^p \theta_i t^i$ where $\vect{t} = [0,1,2,\cdots,H-2, H-1]^T/H \text{ and p} \le 4$. \\
 The trend forecast has the form: 
 \[
 	\hat{\vect{y}}_{i,j}^{tr} = \matr{T} \theta_{i,j}
 \]
 The number of  $\theta$ parameters is less or equal to 4.
-\paragraph{seasonality model}: to capture cyclical, recurring patterns, this block performs a Fourier transform of the series: 
+\paragraph{seasonality block}: to capture cyclical, recurring patterns, this block performs a Fourier transform of the series: 
 \begin{align*}
 		g_\theta (t)		&= \sum_{i=0}^{\floor*{H/2-1}} \theta_i \cos{(2 \pi it)} + \theta_{i + \floor*{H/2}}  \sin{(2 \pi it)}  \text{ and p} < 10\\
 						&	\text{ where } \theta_{i,j} \text{ are Fourier coefficients predicted by a FC network of layer} j \text{ of stack } i \\
@@ -600,10 +600,13 @@ The question is still open whether the next generation of models will adopt an h
 Our effort to wrap the sMAPE into a loss function were not conclusive. Nevertheless having an objective function, and in addition robust DL architectures, which take into account very long temporal dependencies,
 are probably the next focus of research in the domain of univariate forecasting.
 
-%\section{Students contribution}
-%YG: implemented code based, wrote report and slides
-%YG + ZC: run experiments
-%YG + ZC + SP: presentation
+\newpage 
+\section{Student contributions}
+\begin{itemize}
+	\item [-] YG: implemented code, wrote report and presentation slides
+	\item [-] YG + ZC + SP: ran experiments
+	\item [-] YG + ZC + SP: gave presentation
+\end{itemize}
 
 
 \bibliographystyle{plainnat}
