@@ -1,4 +1,6 @@
 # Project for DS-GA-3001-001
+Probabilistic Time Series Analysis Class
+
 Description:
   In this work, we seek to replicate and improve the results reached by two neural networks: **ES-RNN**  
    and **N-BEATS** on the M4 dataset competition.
