@@ -1,5 +1,5 @@
-# Project for DS-GA-3001-001
-Probabilistic Time Series Analysis Class
+# Univariate Time-Series predictions
+Probabilistic Time Series Analysis
 
 Description:
   In this work, we seek to replicate and improve the results reached by two neural networks: **ES-RNN**  
